@@ -1,301 +1,360 @@
-:root {
-  --bg: #020617;
-  --panel: rgba(2, 6, 23, 0.76);
-  --panel-2: rgba(15, 23, 42, 0.55);
-  --stroke: rgba(148, 163, 184, 0.16);
-  --stroke-2: rgba(148, 163, 184, 0.22);
-  --text: #e5e7eb;
-  --muted: rgba(229, 231, 235, 0.72);
-  --muted-2: rgba(229, 231, 235, 0.55);
-  --accent: #4b84ff;
-  --danger: #ef4444;
-  --shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
-  --radius: 18px;
-  --radius-sm: 14px;
-}
+/* /assets/styles.css
+   SmartFits Customer Onboarding — Dark / Modern UI
+   (Matches the IDs/classes used in the index.html I sent)
+*/
 
+/* -----------------------------
+   Base / Reset
+------------------------------ */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text);
-  background: radial-gradient(1200px 600px at 50% 0%, rgba(75,132,255,0.18), transparent 60%),
-              radial-gradient(900px 500px at 0% 20%, rgba(239,68,68,0.12), transparent 55%),
-              #020617;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: rgba(243, 244, 246, 0.95);
+  background: #020617;
+  line-height: 1.5;
 }
 
+/* Background glow / image layer */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(1200px 700px at 20% 0%, rgba(75, 132, 255, 0.20), transparent 60%),
+    radial-gradient(900px 600px at 80% 10%, rgba(239, 68, 68, 0.12), transparent 55%),
+    radial-gradient(700px 500px at 60% 80%, rgba(75, 132, 255, 0.12), transparent 60%),
+    linear-gradient(to bottom, rgba(2,6,23,0.65), rgba(2,6,23,0.92));
+  pointer-events: none;
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("/images/introduction_image.png") center / cover no-repeat;
+  opacity: 0.18;
+  filter: saturate(1.05) contrast(1.05);
+  pointer-events: none;
+  z-index: -3;
+}
+
+/* Links (keep subtle) */
 a { color: inherit; }
+a:hover { text-decoration: underline; }
 
+/* -----------------------------
+   Layout
+------------------------------ */
 .container {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1120px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 18px 0 60px;
+  padding: 18px 0 64px;
 }
 
-.topbar {
+.section {
+  margin-top: 22px;
+  padding: 18px 18px 20px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  letter-spacing: 0.2px;
+  font-weight: 650;
+}
+
+.desc {
+  margin: 0 0 14px;
+  color: rgba(229,231,235,0.75);
+  font-size: 14px;
+}
+
+/* -----------------------------
+   Header / Brand
+------------------------------ */
+.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 10px 0 16px;
+  gap: 12px;
+  padding: 10px 0 14px;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 240px;
+  min-width: 0;
 }
 
 .brand img {
-  height: 34px;
-  width: auto;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(2,6,23,0.6);
+  border: 1px solid rgba(148,163,184,0.18);
 }
 
-.brand .sub {
+.brandTitle .top {
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  font-size: 13px;
+  color: rgba(249,250,251,0.95);
+}
+
+.brandTitle .sub {
   font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.02em;
+  color: rgba(148,163,184,0.85);
+  margin-top: 2px;
 }
 
+/* "Sign in as an Admin" chip */
 .chip {
-  border: 1px solid var(--stroke-2);
-  background: rgba(2, 6, 23, 0.55);
-  color: var(--text);
-  padding: 9px 14px;
+  appearance: none;
+  border: 1px solid rgba(148,163,184,0.22);
+  background: rgba(2,6,23,0.6);
+  color: rgba(243,244,246,0.92);
+  padding: 10px 14px;
   border-radius: 999px;
+  font-weight: 650;
+  font-size: 13px;
   cursor: pointer;
-  transition: 0.2s ease;
+  white-space: nowrap;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
-.chip:hover { border-color: rgba(75,132,255,0.55); }
 
+.chip:hover {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(75,132,255,0.45);
+}
+
+.chip:active { transform: translateY(1px); }
+
+/* -----------------------------
+   Hero
+------------------------------ */
 .hero {
-  margin-top: 8px;
-  border: 1px solid var(--stroke);
-  background: linear-gradient(180deg, rgba(15,23,42,0.70), rgba(2,6,23,0.65));
-  border-radius: var(--radius);
-  padding: 22px 22px 18px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  position: relative;
-}
-
-.heroGrid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 18px;
-  align-items: start;
+  padding: 18px 18px 18px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  backdrop-filter: blur(10px);
 }
 
 .hero h1 {
-  margin: 0;
-  font-size: 34px;
-  letter-spacing: -0.02em;
-  font-weight: 700;
+  margin: 0 0 10px;
+  font-size: clamp(26px, 3.2vw, 38px);
+  letter-spacing: 0.2px;
+  font-weight: 750;
 }
 
 .hero p {
-  margin: 10px 0 0;
-  color: var(--muted);
-  line-height: 1.65;
-  font-size: 14px;
-}
-
-.heroImg {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid var(--stroke);
-  overflow: hidden;
-}
-.heroImg img { width: 100%; display: block; }
-
-.tabs {
-  margin-top: 16px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.tabBtn {
-  border: 1px solid var(--stroke-2);
-  background: rgba(2,6,23,0.42);
-  color: var(--text);
-  padding: 10px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.tabBtn.active {
-  border-color: rgba(75,132,255,0.65);
-  background: rgba(75,132,255,0.12);
-}
-
-.section {
-  margin-top: 16px;
-  border: 1px solid var(--stroke);
-  background: var(--panel);
-  border-radius: var(--radius);
-  padding: 18px;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-}
-
-.section h2 {
-  margin: 0 0 10px;
-  font-size: 18px;
-  letter-spacing: -0.01em;
-}
-
-.section p {
   margin: 0;
-  color: var(--muted);
-  line-height: 1.65;
+  color: rgba(229,231,235,0.78);
   font-size: 14px;
+  max-width: 80ch;
 }
 
-.hidden { display: none !important; }
+/* -----------------------------
+   Forms
+------------------------------ */
+form { margin: 0; }
 
-/* ---- Form ---- */
 .formGrid {
-  margin-top: 14px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-label {
+@media (max-width: 760px) {
+  .formGrid { grid-template-columns: 1fr; }
+  .container { width: min(1120px, calc(100% - 26px)); }
+}
+
+.field label {
   display: block;
+  margin: 0 0 6px;
   font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 6px;
+  font-weight: 650;
+  color: rgba(229,231,235,0.85);
 }
 
 input, textarea, select {
   width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(2,6,23,0.45);
+  color: rgba(243,244,246,0.94);
   padding: 12px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--stroke);
-  background: rgba(2, 6, 23, 0.42);
-  color: var(--text);
   outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
 }
 
-textarea { min-height: 110px; resize: vertical; }
+textarea { min-height: 92px; resize: vertical; }
 
-.row2 { grid-column: span 2; }
-
-.checkboxRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.checkboxRow input { width: 18px; height: 18px; margin-top: 2px; }
-
-.btnRow {
-  margin-top: 14px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.btn {
-  border: 1px solid var(--stroke-2);
-  background: rgba(2,6,23,0.50);
-  color: var(--text);
-  padding: 10px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.btnPrimary {
+input:focus, textarea:focus, select:focus {
   border-color: rgba(75,132,255,0.55);
-  background: rgba(75,132,255,0.88);
-  color: #020617;
-  font-weight: 700;
+  background: rgba(15,23,42,0.55);
 }
 
-.btnDanger {
-  border-color: rgba(239,68,68,0.4);
-  background: rgba(239,68,68,0.14);
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
 }
 
 .status {
-  margin-top: 12px;
   font-size: 13px;
-  color: var(--muted);
+  color: rgba(229,231,235,0.8);
 }
-.status.error { color: #ffb4b4; }
 
-/* ---- Team ---- */
-.teamWrap { margin-top: 14px; display: grid; gap: 14px; }
+/* Buttons */
+.btn, .btnSecondary, .closeBtn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  transition: transform 120ms ease, filter 120ms ease, background 120ms ease, border-color 120ms ease;
+}
 
+.btn {
+  background: rgba(75,132,255,1);
+  color: #020617;
+}
+
+.btn:hover { filter: brightness(1.04); }
+.btn:active { transform: translateY(1px); }
+
+.btnSecondary {
+  background: rgba(2,6,23,0.55);
+  border: 1px solid rgba(148,163,184,0.20);
+  color: rgba(243,244,246,0.92);
+}
+
+.btnSecondary:hover {
+  background: rgba(15,23,42,0.62);
+  border-color: rgba(75,132,255,0.35);
+}
+
+.inlineToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(2,6,23,0.45);
+  color: rgba(229,231,235,0.85);
+  cursor: pointer;
+  user-select: none;
+}
+
+.inlineToggle:hover {
+  border-color: rgba(75,132,255,0.40);
+  background: rgba(15,23,42,0.55);
+}
+
+/* -----------------------------
+   Team
+------------------------------ */
 .teamBlock {
-  border: 1px solid var(--stroke);
-  background: rgba(2,6,23,0.38);
-  border-radius: var(--radius);
+  margin-top: 14px;
   padding: 16px;
+  border-radius: 16px;
+  background: rgba(2,6,23,0.45);
+  border: 1px solid rgba(148,163,184,0.14);
 }
 
 .teamBlock h3 {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 16px;
+  font-weight: 700;
 }
+
 .teamBlock p {
-  margin: 8px 0 0;
-  color: var(--muted);
+  margin: 0 0 12px;
+  color: rgba(229,231,235,0.70);
   font-size: 13px;
-  line-height: 1.6;
 }
 
 .teamGrid {
-  margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-/* PERSON CARD — fully left aligned */
+@media (max-width: 860px) {
+  .teamGrid { grid-template-columns: 1fr; }
+}
+
 .person {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border: 1px solid var(--stroke);
-  background: rgba(15,23,42,0.35);
-  border-radius: 16px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148,163,184,0.14);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
-.person:hover { border-color: rgba(75,132,255,0.45); }
+
+.person:hover {
+  transform: translateY(-1px);
+  border-color: rgba(75,132,255,0.35);
+  background: rgba(15, 23, 42, 0.48);
+}
 
 .avatar {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   border-radius: 999px;
   object-fit: cover;
-  border: 1px solid rgba(255,255,255,0.10);
+  flex: 0 0 auto;
+  border: 1px solid rgba(148,163,184,0.18);
 }
 
-.personMeta { text-align: left; }
+/* ✅ This fixes your “name is centered, role is left” issue:
+   everything is LEFT aligned and starts right next to the avatar */
+.personText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* important */
+  text-align: left;        /* important */
+  min-width: 0;
+}
+
 .personName {
-  font-weight: 600; /* lighter than before */
-  margin: 0;
-  line-height: 1.2;
-}
-.personRole {
-  margin: 2px 0 0;
-  font-weight: 400; /* not bold */
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.2;
+  font-size: 15px;
+  font-weight: 650;        /* less thick than before */
+  color: rgba(249,250,251,0.95);
+  line-height: 1.15;
 }
 
-/* ---- Modals ---- */
+.personRole {
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 500;        /* NOT bold */
+  color: rgba(148,163,184,0.90);
+}
+
+/* -----------------------------
+   Modals
+------------------------------ */
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -304,198 +363,190 @@ textarea { min-height: 110px; resize: vertical; }
   align-items: center;
   justify-content: center;
   padding: 18px;
-  z-index: 999;
+  z-index: 50;
 }
-.modalBackdrop.open { display: flex; }
+
+.modalBackdrop.isOpen { display: flex; }
 
 .modal {
   width: min(980px, 100%);
-  max-height: min(86vh, 780px);
+  max-height: min(86vh, 820px);
   overflow: auto;
   border-radius: 18px;
-  border: 1px solid rgba(148,163,184,0.22);
-  background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(2,6,23,0.86));
-  box-shadow: var(--shadow);
-  padding: 16px;
+  background: rgba(2,6,23,0.88);
+  border: 1px solid rgba(148,163,184,0.18);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.45);
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(148,163,184,0.12);
   gap: 10px;
-  padding: 8px 6px 14px;
-  border-bottom: 1px solid rgba(148,163,184,0.14);
 }
 
-.modalHeader h3 {
+.modalTitle {
   margin: 0;
-  font-size: 16px;
-  letter-spacing: -0.01em;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
 }
 
-.modalClose {
-  border: 1px solid rgba(148,163,184,0.22);
+.closeBtn {
   background: rgba(2,6,23,0.55);
-  color: var(--text);
-  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.20);
+  color: rgba(243,244,246,0.92);
   padding: 8px 12px;
-  cursor: pointer;
 }
 
-.modalBody { padding: 14px 6px 6px; }
-
-.panel {
-  border: 1px solid rgba(148,163,184,0.16);
-  background: rgba(2,6,23,0.40);
-  border-radius: 18px;
-  padding: 16px;
+.closeBtn:hover {
+  background: rgba(15,23,42,0.62);
+  border-color: rgba(148,163,184,0.30);
 }
 
-.panel + .panel { margin-top: 14px; }
+.modalBody { padding: 14px; }
 
-/* Admin layout */
-.adminTopRow {
-  display: flex;
-  align	cfg
- -items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.adminStatus {
-  margin-top: 10px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.adminStatus.error { color: #ffb4b4; }
-
-.fieldGroup { display: grid; gap: 10px; }
-
-/* Search UI spacing */
-.searchRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  align-items: end;
-}
-.searchRow .btnPrimary { height: 40px; }
-
-.searchDateWrap {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 12px;
-  align-items: end;
-}
-
-.toggleLink {
-  margin-top: 10px;
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  color: rgba(229,231,235,0.78);
-  font-size: 13px;
-  cursor: pointer;
-  user-select: none;
-}
-.toggleLink:hover { color: #ffffff; }
-
-/* Table */
-.table {
-  width: 100%;
+.adminCard {
   margin-top: 14px;
-  border-collapse: separate;
-  border-spacing: 0 10px;
-}
-
-.table th {
-  text-align: left;
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
-  padding: 0 10px;
-}
-
-.table td {
-  background: rgba(15,23,42,0.35);
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15,23,42,0.40);
   border: 1px solid rgba(148,163,184,0.14);
-  padding: 12px 10px;
-  vertical-align: middle;
 }
 
-.table tr td:first-child { border-radius: 14px 0 0 14px; }
-.table tr td:last-child  { border-radius: 0 14px 14px 0; }
+.adminCard:first-child { margin-top: 0; }
 
-.actionsInline {
-  display: inline-flex;
-  gap: 10px;
+.adminCard h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.small {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: rgba(229,231,235,0.70);
+}
+
+.adminGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.adminRow {
+  display: flex;
   align-items: center;
+  gap: 12px;
+  margin-top: 14px; /* ✅ adds the missing spacing you mentioned */
   flex-wrap: wrap;
 }
 
-.linkBtn {
-  border: 1px solid rgba(148,163,184,0.22);
-  background: rgba(2,6,23,0.45);
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+@media (max-width: 760px) {
+  .adminGrid { grid-template-columns: 1fr; }
 }
 
-.linkBtn:hover { border-color: rgba(75,132,255,0.5); }
-
-.smallMuted { font-size: 12px; color: var(--muted); }
-
-/* Logs */
-.logRowSummary {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.logTitle { font-weight: 600; }
-.logSub { font-size: 12px; color: var(--muted); }
-
-.detailsBox {
-  margin-top: 10px;
+/* -----------------------------
+   Tables
+------------------------------ */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 14px;
   border: 1px solid rgba(148,163,184,0.14);
   background: rgba(2,6,23,0.35);
-  border-radius: 14px;
-  padding: 12px;
-  color: rgba(229,231,235,0.88);
-  font-size: 13px;
-  line-height: 1.55;
 }
 
-.contactHeading {
-  margin-top: 10px;
+.table thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  padding: 12px 12px;
+  color: rgba(229,231,235,0.75);
+  background: rgba(15,23,42,0.50);
+  border-bottom: 1px solid rgba(148,163,184,0.12);
   font-weight: 700;
+}
+
+.table tbody td {
+  padding: 12px 12px;
+  color: rgba(243,244,246,0.92);
+  border-bottom: 1px solid rgba(148,163,184,0.10);
   font-size: 13px;
-  color: rgba(229,231,235,0.92);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* ✅ Keep action buttons on ONE LINE */
+.actionsRow {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(2,6,23,0.45);
+  color: rgba(243,244,246,0.92);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+
+.actionLink:hover {
+  border-color: rgba(75,132,255,0.38);
+  background: rgba(15,23,42,0.55);
+}
+
+/* -----------------------------
+   Profile Modal content
+------------------------------ */
+.profileBox {
+  padding: 10px 2px 4px;
+}
+
+.profileBox .role {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(148,163,184,0.95);
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148,163,184,0.85);
+  margin-bottom: 8px;
+  font-weight: 750;
 }
 
 .contactLine {
-  margin-top: 6px;
   font-size: 13px;
-  color: rgba(229,231,235,0.82);
+  color: rgba(243,244,246,0.90);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(2,6,23,0.45);
+  border: 1px solid rgba(148,163,184,0.14);
+  margin-bottom: 10px;
 }
 
-.contactLink {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  opacity: 0.95;
-}
-
-@media (max-width: 860px) {
-  .heroGrid { grid-template-columns: 1fr; }
-  .formGrid { grid-template-columns: 1fr; }
-  .row2 { grid-column: span 1; }
-  .teamGrid { grid-template-columns: 1fr; }
-  .searchDateWrap { grid-template-columns: 1fr; }
-}
+/* -----------------------------
+   Utility
+------------------------------ */
+.hidden { display: none !important; }
