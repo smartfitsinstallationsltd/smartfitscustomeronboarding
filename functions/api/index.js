@@ -1,53 +1,68 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-  };
+  // /api (no extra path)
+  return handleApiRequest({ request, env, route: "" });
+}
 
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers });
-  }
+/* ---------------- Core Handler ---------------- */
 
+async function handleApiRequest({ request, env, route }) {
+  // CORS / preflight
+  if (request.method === "OPTIONS") return corsPreflight(env);
+
+  // We only support POST for the API
   if (request.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
-      status: 405,
-      headers,
-    });
+    return json(
+      { ok: false, error: "Method Not Allowed" },
+      405,
+      env
+    );
   }
 
-  const APS_SCRIPT_URL = env.APS_SCRIPT_URL;
-  if (!APS_SCRIPT_URL) {
-    return new Response(JSON.stringify({ ok: false, error: "Missing APS_SCRIPT_URL env var" }), {
-      status: 500,
-      headers,
-    });
+  // Basic health check
+  if (!route) {
+    return json(
+      {
+        ok: true,
+        service: "smartfits-onboarding-api",
+        hint: "Use /api/admin-login, /api/whoami, /api/submit, /api/files, /api/delete-file, /api/logs",
+      },
+      200,
+      env
+    );
   }
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid JSON" }), {
-      status: 400,
-      headers,
-    });
-  }
+  return json({ ok: false, error: "Not Found" }, 404, env);
+}
 
-  const resp = await fetch(APS_SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+/* ---------------- Helpers ---------------- */
+
+function corsPreflight(env) {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders(env),
   });
+}
 
-  const text = await resp.text();
+function corsHeaders(env) {
+  // Lock this down if you want by setting ALLOWED_ORIGIN to your domain
+  const origin = env.ALLOWED_ORIGIN || "*";
 
-  return new Response(text, {
-    status: resp.status,
-    headers,
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function json(obj, status = 200, env) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...corsHeaders(env),
+    },
   });
 }
