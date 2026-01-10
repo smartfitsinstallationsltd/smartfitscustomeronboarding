@@ -1,472 +1,523 @@
-// -----------------------------
-// CONFIG: set this to your Apps Script Web App URL
-// -----------------------------
-// IMPORTANT: this is called from /api (Cloudflare Pages Function), so NO CORS.
-const API = "/api";
+// ============================
+// CONFIG (SET THIS)
+// ============================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
-// -----------------------------
+// ============================
 // Helpers
-// -----------------------------
+// ============================
 const $ = (id) => document.getElementById(id);
 
-function setStatus(el, msg, type) {
-  if (!el) return;
-  el.classList.remove("ok", "error");
-  if (!msg) { el.textContent = ""; return; }
-  el.textContent = msg;
-  if (type) el.classList.add(type);
+function openModal(id){ $(id).classList.add("show"); $(id).setAttribute("aria-hidden","false"); }
+function closeModal(id){ $(id).classList.remove("show"); $(id).setAttribute("aria-hidden","true"); }
+
+function fmtNiceDate(isoOrString){
+  const d = new Date(isoOrString);
+  if (Number.isNaN(d.getTime())) return String(isoOrString || "");
+  // e.g. 10 January 2026 at 10:41 AM GMT
+  const opts = { day:"numeric", month:"long", year:"numeric" };
+  const datePart = d.toLocaleDateString("en-GB", opts);
+  const timePart = d.toLocaleTimeString("en-GB", { hour:"numeric", minute:"2-digit", hour12:true });
+  return `${datePart} at ${timePart} GMT`;
 }
 
-function openModal(backdropEl) {
-  backdropEl.classList.add("open");
-  backdropEl.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-}
-
-function closeModal(backdropEl) {
-  backdropEl.classList.remove("open");
-  backdropEl.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
-async function apiPost(payload) {
-  const res = await fetch(API, {
+async function api(action, payload = {}, token = null){
+  const res = await fetch("/api/" + action, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    headers: { "Content-Type":"application/json", ...(token ? { "Authorization": `Bearer ${token}` } : {}) },
+    body: JSON.stringify(payload)
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) {
-    throw new Error(data.error || `Request failed (${res.status})`);
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.ok === false) {
+    const msg = json.error || `Request failed (${res.status})`;
+    throw new Error(msg);
   }
-  return data;
+  return json;
 }
 
-// -----------------------------
-// Policy modal (copy on-page policy content so it matches exactly)
-// -----------------------------
-function initPolicyModal() {
-  const policyBody = $("policyBottom");
-  const modalBody = $("policyModalBody");
-  if (policyBody && modalBody) {
-    modalBody.innerHTML = policyBody.innerHTML;
-  }
+// ============================
+// Policy checkbox
+// ============================
+const acceptPolicy = $("acceptPolicy");
+const acceptPolicyValue = $("acceptPolicyValue");
 
-  const policyModal = $("policyModal");
-  $("openPolicyBtn")?.addEventListener("click", () => openModal(policyModal));
-  $("closePolicyBtn")?.addEventListener("click", () => closeModal(policyModal));
-  policyModal?.addEventListener("click", (e) => {
-    if (e.target === policyModal) closeModal(policyModal);
+if (acceptPolicy) {
+  acceptPolicy.addEventListener("change", () => {
+    acceptPolicyValue.value = acceptPolicy.checked ? "Yes" : "No";
   });
 }
 
-// -----------------------------
-// Public form submission
-// -----------------------------
-function initPublicForm() {
-  const form = $("deploymentForm");
-  if (!form) return;
+// ============================
+// Policy modal
+// ============================
+$("openPolicyBtn")?.addEventListener("click", () => openModal("policyModal"));
 
-  const accept = $("acceptPolicy");
-  const acceptVal = $("acceptPolicyValue");
-  accept?.addEventListener("change", () => {
-    acceptVal.value = accept.checked ? "Yes" : "No";
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-close]");
+  if (!btn) return;
+  closeModal(btn.getAttribute("data-close"));
+});
+
+// ============================
+// Person modal
+// ============================
+document.querySelectorAll(".person").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const data = JSON.parse(btn.getAttribute("data-person") || "{}");
+    $("personTitle").textContent = data.name || "Team Member";
+    $("personImg").src = data.img || "";
+    $("personImg").alt = data.name || "";
+    $("personName").textContent = data.name || "";
+    $("personRole").textContent = data.role || "";
+
+    const email = data.email || "";
+    const phone = data.phone || "";
+
+    $("personEmailLine").textContent = email ? `Email: ${email}` : "Email: —";
+    $("personPhoneLine").textContent = phone ? `Phone: ${phone}` : "Phone: —";
+
+    const emailBtn = $("personEmailBtn");
+    emailBtn.classList.toggle("hidden", !email);
+    emailBtn.href = email ? `mailto:${email}` : "#";
+
+    const callBtn = $("personCallBtn");
+    callBtn.classList.toggle("hidden", !phone);
+    callBtn.href = phone ? `tel:${phone.replace(/\s+/g,"")}` : "#";
+
+    openModal("personModal");
   });
+});
 
-  $("clearBtn")?.addEventListener("click", () => {
+// ============================
+// Form submit
+// ============================
+$("clearBtn")?.addEventListener("click", () => {
+  $("deploymentForm").reset();
+  acceptPolicyValue.value = "No";
+  $("status").textContent = "";
+});
+
+$("deploymentForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const status = $("status");
+  status.textContent = "Submitting…";
+
+  try{
+    const form = e.target;
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    if (!data.acceptPolicyValue || data.acceptPolicyValue !== "Yes") {
+      throw new Error("Please accept the Cancellation Policy to continue.");
+    }
+
+    await api("submit", { action:"submitForm", ...data, appsScriptUrl: APPS_SCRIPT_URL });
+
+    status.textContent = "Submitted successfully. Thank you for the business.";
     form.reset();
-    if (acceptVal) acceptVal.value = "No";
-    setStatus($("status"), "");
-  });
+    acceptPolicyValue.value = "No";
+  }catch(err){
+    status.textContent = `Error: ${err.message}`;
+  }
+});
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus($("status"), "");
+// ============================
+// Admin modal state + auth
+// ============================
+let adminToken = localStorage.getItem("sf_admin_token") || "";
+let adminInfo = null;
 
-    const payload = Object.fromEntries(new FormData(form).entries());
-
-    // Basic required checks
-    const required = [
-      "fullCompanyName", "vatNumber", "companyRegNumber",
-      "invoiceAddress",
-      "accountsContactName", "accountsContactNumber", "accountsEmail",
-      "mainContactName", "mainContactNumber", "mainContactEmail",
-      "acceptPolicyValue"
-    ];
-
-    for (const k of required) {
-      if (!payload[k] || String(payload[k]).trim() === "") {
-        setStatus($("status"), `Please complete: ${k}`, "error");
-        return;
-      }
-    }
-    if (payload.acceptPolicyValue !== "Yes") {
-      setStatus($("status"), "Please accept the Cancellation Policy.", "error");
-      return;
-    }
-
-    try {
-      $("submitBtn").disabled = true;
-      setStatus($("status"), "Submitting…");
-
-      const r = await apiPost({ action: "submitForm", ...payload });
-      setStatus($("status"), `Submitted successfully. PDF saved as: ${r.pdfName}`, "ok");
-      form.reset();
-      if (acceptVal) acceptVal.value = "No";
-    } catch (err) {
-      setStatus($("status"), err.message || "Failed to submit.", "error");
-    } finally {
-      $("submitBtn").disabled = false;
-    }
-  });
+function setAdminUI(signedIn){
+  $("adminSignedOutView").classList.toggle("hidden", signedIn);
+  $("adminSignedInView").classList.toggle("hidden", !signedIn);
 }
 
-// -----------------------------
-// Team member modal (click cards)
-// -----------------------------
-const PEOPLE = {
-  tara:    { name:"Tara Hassall",    role:"Managing Director", email:"tara@smartfits.co.uk", phone:"07894880559", img:"./images/tara_hassall.png" },
-  charlie: { name:"Charlie Inger",   role:"Sales & Business Development Manager", email:"charlie@smartfits.co.uk", phone:"07385099620", img:"./images/charlie_inger.png" },
-  emma:    { name:"Emma Sumner",     role:"Customer Success Team Leader", email:"emma@smartfits.co.uk", img:"./images/emma_sumner.png" },
-  kelly:   { name:"Kelly Mullen",    role:"Customer Success Team Member", email:"kelly@smartfits.co.uk", img:"./images/kelly_mullen.png" },
-  aleks:   { name:"Aleks Fossick",   role:"Customer Success Team Member", email:"aleks@smartfits.co.uk", img:"./images/aleks_fossick.png" },
-  roz:     { name:"Roz Hardwick",    role:"Operations Lead", email:"roz@smartfits.co.uk", img:"./images/roz_hardwick.png" },
-  ellie:   { name:"Ellie Topliss",   role:"Project Coordinator", email:"ellie@smartfits.co.uk", img:"./images/ellie_topliss.png" },
-  sophie:  { name:"Sophie Turner",   role:"Project Coordinator", email:"sophie@smartfits.co.uk", img:"./images/sophie_turner.png" },
-  amanda:  { name:"Amanda Clarke",   role:"Field Operations Team Member", email:"amanda@smartfits.co.uk", img:"./images/amanda_clarke.png" },
-  rosie:   { name:"Rosie Smart",     role:"Field Operations Team Member", email:"rosie@smartfits.co.uk", img:"./images/rosie_smart.png" },
-  bridie:  { name:"Bridie Southam",  role:"Field Operations Team Member", email:"bridie@smartfits.co.uk", img:"./images/bridie_southam.png" },
-  kasia:   { name:"Kasia Dzielak",   role:"Field Operations Team Member", email:"kasia@smartfits.co.uk", img:"./images/kasia_dzielak.png" },
-};
-
-function initPeopleModal() {
-  const modal = $("personModal");
-  if (!modal) return;
-
-  document.querySelectorAll("[data-person]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.getAttribute("data-person");
-      const p = PEOPLE[key];
-      if (!p) return;
-
-      $("personTitle").textContent = p.name;
-      $("personImg").src = p.img || "";
-      $("personImg").alt = p.name;
-      $("personName").textContent = p.name;
-      $("personRole").textContent = p.role || "";
-
-      const emailLink = $("personEmail");
-      emailLink.href = `mailto:${encodeURIComponent(p.email)}?subject=${encodeURIComponent("SmartFits – Customer Onboarding")}`;
-
-      const phoneLink = $("personPhone");
-      if (p.phone) {
-        phoneLink.style.display = "inline-flex";
-        phoneLink.href = `tel:${p.phone.replace(/\s+/g,"")}`;
-      } else {
-        phoneLink.style.display = "none";
-      }
-
-      openModal(modal);
-    });
-  });
-
-  $("closePersonBtn")?.addEventListener("click", () => closeModal(modal));
-  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(modal); });
+function setLogsVisibility(){
+  const can = !!(adminInfo && adminInfo.canViewLogs);
+  $("logsCard").classList.toggle("hidden", !can);
 }
 
-// -----------------------------
-// Admin dashboard modal
-// -----------------------------
-let adminSession = {
-  token: null,
-  admin: null
-};
+$("openAdminBtn")?.addEventListener("click", async () => {
+  openModal("adminModal");
+  await tryRestoreSession();
+});
 
-let pendingDelete = null;
-
-function renderAdminState() {
-  const loginPanel = $("adminLoginPanel");
-  const authedPanel = $("adminAuthedPanel");
-  const hello = $("adminHello");
-  const logsPanel = $("logsPanel");
-
-  if (!adminSession.token) {
-    loginPanel.style.display = "block";
-    authedPanel.style.display = "none";
-    setStatus($("filesStatus"), "");
-    setStatus($("welStatus"), "");
-    setStatus($("logsStatus"), "");
+async function tryRestoreSession(){
+  if (!adminToken) {
+    adminInfo = null;
+    setAdminUI(false);
     return;
   }
-
-  loginPanel.style.display = "none";
-  authedPanel.style.display = "block";
-
-  const a = adminSession.admin || {};
-  hello.textContent = `Signed in as ${a.name || ""} (${a.email || ""})`;
-
-  // Logs visibility restricted
-  if (a.canViewLogs) {
-    logsPanel.style.display = "block";
-  } else {
-    logsPanel.style.display = "none";
+  try{
+    const r = await api("whoami", { action:"whoami", appsScriptUrl: APPS_SCRIPT_URL }, adminToken);
+    adminInfo = r.admin;
+    $("adminSignedInAs").textContent = `Signed in as ${adminInfo.name} (${adminInfo.email})`;
+    setAdminUI(true);
+    setLogsVisibility();
+  }catch{
+    adminToken = "";
+    localStorage.removeItem("sf_admin_token");
+    adminInfo = null;
+    setAdminUI(false);
   }
 }
 
-async function adminLogin(email, password) {
-  const r = await apiPost({ action: "adminLogin", email, password });
-  adminSession.token = r.token;
-  adminSession.admin = r.admin;
-  renderAdminState();
+// login
+$("adminClearBtn")?.addEventListener("click", () => {
+  $("adminEmail").value = "";
+  $("adminPassword").value = "";
+  $("adminLoginStatus").textContent = "";
+});
+
+$("adminLoginForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("adminLoginStatus").textContent = "Signing in…";
+  try{
+    const email = $("adminEmail").value.trim();
+    const password = $("adminPassword").value;
+
+    const r = await api("admin-login", { action:"adminLogin", email, password, appsScriptUrl: APPS_SCRIPT_URL });
+    adminToken = r.token;
+    localStorage.setItem("sf_admin_token", adminToken);
+    adminInfo = r.admin;
+
+    $("adminSignedInAs").textContent = `Signed in as ${adminInfo.name} (${adminInfo.email})`;
+    setAdminUI(true);
+    setLogsVisibility();
+    $("adminLoginStatus").textContent = "";
+  }catch(err){
+    $("adminLoginStatus").textContent = `Login failed: ${err.message}`;
+  }
+});
+
+$("adminLogoutBtn")?.addEventListener("click", () => {
+  adminToken = "";
+  adminInfo = null;
+  localStorage.removeItem("sf_admin_token");
+  setAdminUI(false);
+});
+
+// ============================
+// Files search (name-only + toggle date)
+// ============================
+let dateEnabled = false;
+
+function updateSearchMode(){
+  $("dateFilters").classList.toggle("hidden", !dateEnabled);
+  $("searchOnlyActions").classList.toggle("hidden", dateEnabled);
+  $("toggleDateBtn").textContent = dateEnabled ? "Hide date search" : "Search by date too";
 }
 
-async function listFiles() {
-  setStatus($("filesStatus"), "");
-  const q = $("fileQuery").value || "";
-  const fromDate = $("fromDate").value || "";
-  const toDate = $("toDate").value || "";
+$("toggleDateBtn")?.addEventListener("click", () => {
+  dateEnabled = !dateEnabled;
+  updateSearchMode();
+});
 
-  const tbody = $("filesTbody");
-  tbody.innerHTML = `<tr><td colspan="3" class="muted">Loading…</td></tr>`;
+updateSearchMode();
 
-  try {
-    const r = await apiPost({
-      action: "listFiles",
-      token: adminSession.token,
-      query: q,
+async function loadFiles(){
+  const status = $("filesStatus");
+  status.textContent = "Searching…";
+  $("filesTbody").innerHTML = "";
+
+  try{
+    const query = $("fileQuery").value.trim();
+    const fromDate = dateEnabled ? ($("fromDate").value || "") : "";
+    const toDate = dateEnabled ? ($("toDate").value || "") : "";
+
+    const r = await api("files", {
+      action:"listFiles",
+      query,
       fromDate,
-      toDate
-    });
+      toDate,
+      appsScriptUrl: APPS_SCRIPT_URL
+    }, adminToken);
 
     const files = r.files || [];
-    if (!files.length) {
-      tbody.innerHTML = `<tr><td colspan="3" class="muted">No files found.</td></tr>`;
+    if (!files.length){
+      $("filesTbody").innerHTML = `<tr><td colspan="3" class="muted">No results.</td></tr>`;
+      status.textContent = "";
       return;
     }
 
-    tbody.innerHTML = files.map(f => {
-      const safeName = escapeHtml(f.name);
+    $("filesTbody").innerHTML = files.map(f => {
+      const safeName = (f.name || "").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       return `
         <tr>
           <td>${safeName}</td>
-          <td>${escapeHtml(f.created)}</td>
-          <td class="actionsCell">
-            <div class="inlineBtns">
-              <a class="smallBtn primary" href="${f.url}" target="_blank" rel="noopener">View</a>
-              <button class="smallBtn danger" type="button" data-del="${f.id}" data-name="${safeName}">Delete</button>
+          <td class="nowrap">${f.created || ""}</td>
+          <td class="nowrap">
+            <div class="actionRow">
+              <a class="actionLink" href="${f.url}" target="_blank" rel="noopener">View</a>
+              <button class="pillDanger" type="button" data-del="${f.id}" data-name="${safeName}">Delete</button>
             </div>
           </td>
         </tr>
       `;
     }).join("");
 
-    tbody.querySelectorAll("[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        pendingDelete = {
-          id: btn.getAttribute("data-del"),
-          name: btn.getAttribute("data-name")
-        };
-        $("confirmText").textContent = `Are you sure you want to delete "${pendingDelete.name}"? This cannot be undone.`;
-        setStatus($("confirmStatus"), "");
-        openModal($("confirmModal"));
-      });
-    });
-
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="3" class="muted">Failed to load files.</td></tr>`;
-    setStatus($("filesStatus"), err.message || "Failed to load files.", "error");
+    status.textContent = "";
+  }catch(err){
+    status.textContent = `Error: ${err.message}`;
+    $("filesTbody").innerHTML = `<tr><td colspan="3" class="muted">Search failed.</td></tr>`;
   }
 }
 
-async function deleteFile(fileId) {
-  setStatus($("confirmStatus"), "");
-  try {
-    $("confirmDeleteBtn").disabled = true;
-    await apiPost({ action: "deleteFile", token: adminSession.token, fileId });
-    setStatus($("confirmStatus"), "Deleted.", "ok");
-    await listFiles();
-    setTimeout(() => closeModal($("confirmModal")), 600);
-  } catch (err) {
-    setStatus($("confirmStatus"), err.message || "Failed to delete.", "error");
-  } finally {
-    $("confirmDeleteBtn").disabled = false;
+$("fileSearchBtn")?.addEventListener("click", loadFiles);
+$("fileSearchBtn2")?.addEventListener("click", loadFiles);
+
+$("filesTable")?.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-del]");
+  if (!btn) return;
+  const id = btn.getAttribute("data-del");
+  const name = btn.getAttribute("data-name") || "this file";
+  if (!confirm(`Delete ${name}?`)) return;
+
+  $("filesStatus").textContent = "Deleting…";
+  try{
+    await api("delete-file", { action:"deleteFile", fileId:id, appsScriptUrl: APPS_SCRIPT_URL }, adminToken);
+    await loadFiles();
+  }catch(err){
+    $("filesStatus").textContent = `Error: ${err.message}`;
   }
+});
+
+// ============================
+// Logs (plain English + details modal)
+// ============================
+function summarizeLog(l){
+  const t = (l.actionType || "").toUpperCase();
+  if (t === "LOGIN") return "Admin signed in";
+  if (t === "DELETE_FILE") return "Deleted file";
+  if (t === "SEND_WELCOME_EMAIL") return "Prepared welcome email";
+  return "Activity";
 }
 
-function buildWelcomeEmail({ companyName, contactName, customerEmail }) {
-  const subject = `Welcome to Smartfits – Your Customer Onboarding Pack`;
-  const name = contactName || companyName;
+function buildLogDetails(l){
+  let detailsObj = {};
+  try{ detailsObj = l.details ? JSON.parse(l.details) : {}; }catch{ detailsObj = { raw: l.details }; }
 
-  // Keep mailto body as plain text (reliable everywhere).
-  const body =
-`Dear ${name},
+  const lines = [];
+  lines.push(`<div class="miniTitle">User</div><div>${(l.adminEmail || "")}</div>`);
+  lines.push(`<div class="lineGap"></div>`);
+  lines.push(`<div class="miniTitle">Action</div><div>${(l.actionType || "")}</div>`);
+  lines.push(`<div class="lineGap"></div>`);
+  lines.push(`<div class="miniTitle">Timestamp</div><div>${fmtNiceDate(l.timestamp)}</div>`);
 
-Welcome to SmartFits Installations. We’re delighted to have you on board and excited to begin supporting your fleet.
+  // nice extras
+  if (detailsObj.fileName){
+    lines.push(`<div class="lineGap"></div>`);
+    lines.push(`<div class="miniTitle">File Name</div><div>${detailsObj.fileName}</div>`);
+  }
+  if (detailsObj.customerEmail){
+    lines.push(`<div class="lineGap"></div>`);
+    lines.push(`<div class="miniTitle">Customer Email</div><div>${detailsObj.customerEmail}</div>`);
+  }
+  if (!detailsObj.fileName && !detailsObj.customerEmail && l.details){
+    lines.push(`<div class="lineGap"></div>`);
+    lines.push(`<div class="miniTitle">Raw Details</div><pre style="white-space:pre-wrap;margin:0;color:#cbd5e1">${String(l.details)}</pre>`);
+  }
+
+  return `<div style="display:grid; gap:6px;">${lines.join("")}</div>`;
+}
+
+$("loadLogsBtn")?.addEventListener("click", async () => {
+  const status = $("logsStatus");
+  status.textContent = "Loading…";
+  $("logsTbody").innerHTML = "";
+
+  try{
+    const r = await api("logs", {
+      action:"listLogs",
+      fromDate: $("logFrom").value || "",
+      toDate: $("logTo").value || "",
+      adminEmail: $("logEmailContains").value.trim(),
+      actionType: $("logType").value || "",
+      appsScriptUrl: APPS_SCRIPT_URL
+    }, adminToken);
+
+    const logs = r.logs || [];
+    if (!logs.length){
+      $("logsTbody").innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
+      status.textContent = "";
+      return;
+    }
+
+    $("logsTbody").innerHTML = logs.map((l, idx) => {
+      const when = fmtNiceDate(l.timestamp);
+      const admin = `${l.adminName || ""} (${l.adminEmail || ""})`;
+      const action = l.actionType || "";
+      const summary = summarizeLog(l);
+      const payload = encodeURIComponent(JSON.stringify(l));
+      return `
+        <tr data-log="${payload}" style="cursor:pointer;">
+          <td class="nowrap">${when}</td>
+          <td>${admin}</td>
+          <td class="nowrap">${action}</td>
+          <td>${summary}</td>
+        </tr>
+      `;
+    }).join("");
+
+    status.textContent = "";
+  }catch(err){
+    status.textContent = `Error: ${err.message}`;
+    $("logsTbody").innerHTML = `<tr><td colspan="4" class="muted">Could not load logs.</td></tr>`;
+  }
+});
+
+$("logsTable")?.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr[data-log]");
+  if (!tr) return;
+  const l = JSON.parse(decodeURIComponent(tr.getAttribute("data-log")));
+  $("logDetailBody").innerHTML = buildLogDetails(l);
+  openModal("logDetailModal");
+});
+
+// ============================
+// Welcome email (.eml + mailto fallback)
+// ============================
+function escapeHtml(s){
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function buildWelcomeEmailHtml(companyName, displayName){
+  const url = "https://smartfitscustomeronboarding.pages.dev";
+  const who = escapeHtml(displayName || companyName || "there");
+
+  return `
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#020617;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#e5e7eb;">
+  <div style="max-width:640px;margin:0 auto;padding:24px;">
+    <div style="border:1px solid #1f2937;border-radius:16px;padding:22px;background:#020617;">
+      <div style="margin-bottom:14px;">
+        <span style="display:inline-block;padding:6px 10px;border:1px solid #1f2937;border-radius:999px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#ef4444;margin-right:8px;vertical-align:middle;"></span>
+          <span style="font-weight:800;letter-spacing:.12em;font-size:12px;vertical-align:middle;">SMARTFITS</span>
+        </span>
+      </div>
+
+      <h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#f9fafb;">Welcome to SmartFits</h1>
+      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#e5e7eb;">Dear ${who},</p>
+
+      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#e5e7eb;">
+        Welcome to <b>SmartFits Installations</b>. We’re delighted to have you on board and excited to begin supporting your fleet.
+      </p>
+
+      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#e5e7eb;">
+        To help you get started, we’ve prepared a dedicated Customer Onboarding Pack with everything you need to know about working with us.
+      </p>
+
+      <div style="margin:16px 0 18px;">
+        <a href="${url}" style="display:inline-block;padding:10px 16px;border-radius:999px;background:#4b84ff;color:#061022;font-weight:800;text-decoration:none;font-size:14px;">
+          View Customer Onboarding Pack
+        </a>
+      </div>
+
+      <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#9ca3af;">Your Onboarding Pack includes:</p>
+      <ul style="margin:0 0 14px 18px;padding:0;font-size:13px;line-height:1.6;color:#9ca3af;">
+        <li>Key onboarding information</li>
+        <li>How the installation and deployment process works</li>
+        <li>Main contacts and how to reach our support team</li>
+      </ul>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #1f2937;">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:#9aa4b2;">
+          SmartFits Installations Limited • 01283 533330 • support@smartfits.co.uk
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+`.trim();
+}
+
+function buildEml({to, subject, html, text}){
+  // Basic EML (works well with Outlook desktop + Apple Mail)
+  const headers = [
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/html; charset="UTF-8"`,
+  ].join("\r\n");
+
+  return `${headers}\r\n\r\n${html || escapeHtml(text || "")}\r\n`;
+}
+
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+$("downloadEmlBtn")?.addEventListener("click", async () => {
+  const status = $("welcomeStatus");
+  status.textContent = "";
+
+  const company = $("welCompany").value.trim();
+  const name = $("welName").value.trim();
+  const email = $("welEmail").value.trim();
+
+  if (!company) return status.textContent = "Please enter a company name.";
+  if (!email) return status.textContent = "Please enter the customer email address.";
+
+  const display = name || company;
+  const subject = "Welcome to SmartFits – Your Customer Onboarding Pack";
+  const html = buildWelcomeEmailHtml(company, display);
+
+  // Download .eml (best for Outlook desktop)
+  downloadFile(`SmartFits_Welcome_${company.replace(/\s+/g,"_")}.eml`, buildEml({
+    to: email,
+    subject,
+    html
+  }), "message/rfc822");
+
+  status.textContent = "Downloaded .eml file. Open it and press Send.";
+});
+
+$("openMailtoBtn")?.addEventListener("click", () => {
+  const company = $("welCompany").value.trim();
+  const name = $("welName").value.trim();
+  const email = $("welEmail").value.trim();
+  const display = name || company || "there";
+
+  if (!company || !email){
+    $("welcomeStatus").textContent = "Enter company name + customer email first.";
+    return;
+  }
+
+  const subject = encodeURIComponent("Welcome to SmartFits – Your Customer Onboarding Pack");
+  const body = encodeURIComponent(
+`Dear ${display},
+
+Welcome to SmartFits Installations. We’re delighted to have you on board.
 
 Please view your Customer Onboarding Pack here:
 https://smartfitscustomeronboarding.pages.dev
 
-The pack includes:
-• Onboarding information
-• How the process works
-• Key contacts and support details
+If you have any questions, reply to this email or contact support@smartfits.co.uk.
 
 Kind regards,
-SmartFits Support
-support@smartfits.co.uk`;
+SmartFits Installations Ltd`
+  );
 
-  // Use mailto so it opens Outlook/Mail on desktop, web, or phone.
-  const mailto =
-    `mailto:${encodeURIComponent(customerEmail)}` +
-    `?subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
-
-  return { mailto, subject, body };
-}
-
-async function openWelcomeEmail() {
-  setStatus($("welStatus"), "");
-  const companyName = $("welCompany").value.trim();
-  const contactName = $("welContact").value.trim();
-  const customerEmail = $("welEmail").value.trim();
-
-  if (!companyName) return setStatus($("welStatus"), "Company name is required.", "error");
-  if (!customerEmail) return setStatus($("welStatus"), "Customer email is required.", "error");
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customerEmail)) {
-    return setStatus($("welStatus"), "Customer email is not valid.", "error");
-  }
-
-  try {
-    // Log the intent (so you can audit who generated it)
-    await apiPost({
-      action: "logAction",
-      token: adminSession.token,
-      actionType: "SEND_WELCOME_EMAIL",
-      details: { companyName, contactName, customerEmail }
-    });
-
-    const { mailto } = buildWelcomeEmail({ companyName, contactName, customerEmail });
-    window.location.href = mailto;
-
-    setStatus($("welStatus"), `Email opened for ${customerEmail}.`, "ok");
-  } catch (err) {
-    setStatus($("welStatus"), err.message || "Could not log action.", "error");
-  }
-}
-
-async function loadLogs() {
-  setStatus($("logsStatus"), "");
-  const tbody = $("logsTbody");
-  tbody.innerHTML = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
-
-  try {
-    const r = await apiPost({
-      action: "listLogs",
-      token: adminSession.token,
-      fromDate: $("logFrom").value || "",
-      toDate: $("logTo").value || "",
-      adminEmail: $("logAdmin").value || "",
-      actionType: $("logType").value || ""
-    });
-
-    const logs = r.logs || [];
-    if (!logs.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = logs.map(l => `
-      <tr>
-        <td>${escapeHtml(l.timestamp)}</td>
-        <td>${escapeHtml(`${l.adminName} (${l.adminEmail})`)}</td>
-        <td>${escapeHtml(l.actionType)}</td>
-        <td style="max-width:520px;word-break:break-word">${escapeHtml(l.details || "")}</td>
-      </tr>
-    `).join("");
-
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" class="muted">Failed to load logs.</td></tr>`;
-    setStatus($("logsStatus"), err.message || "Failed to load logs.", "error");
-  }
-}
-
-function escapeHtml(s) {
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function initAdmin() {
-  const adminModal = $("adminModal");
-  $("adminOpenBtn")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    openModal(adminModal);
-    // Always show ONLY login until signed in
-    renderAdminState();
-  });
-  $("adminCloseBtn")?.addEventListener("click", () => closeModal(adminModal));
-  adminModal?.addEventListener("click", (e) => {
-    if (e.target === adminModal) closeModal(adminModal);
-  });
-
-  $("adminClearBtn")?.addEventListener("click", () => {
-    $("adminEmail").value = "";
-    $("adminPassword").value = "";
-    setStatus($("adminStatus"), "");
-  });
-
-  $("adminSignInBtn")?.addEventListener("click", async () => {
-    setStatus($("adminStatus"), "");
-    const email = $("adminEmail").value.trim();
-    const password = $("adminPassword").value;
-    if (!email || !password) return setStatus($("adminStatus"), "Email and password are required.", "error");
-
-    try {
-      $("adminSignInBtn").disabled = true;
-      setStatus($("adminStatus"), "Signing in…");
-      await adminLogin(email, password);
-      setStatus($("adminStatus"), "", "");
-    } catch (err) {
-      setStatus($("adminStatus"), err.message || "Login failed.", "error");
-    } finally {
-      $("adminSignInBtn").disabled = false;
-    }
-  });
-
-  $("adminLogoutBtn")?.addEventListener("click", () => {
-    adminSession.token = null;
-    adminSession.admin = null;
-    setStatus($("adminStatus"), "");
-    renderAdminState();
-  });
-
-  $("filesSearchBtn")?.addEventListener("click", () => listFiles());
-  $("welOpenBtn")?.addEventListener("click", () => openWelcomeEmail());
-  $("logsLoadBtn")?.addEventListener("click", () => loadLogs());
-
-  // Delete confirm modal
-  const confirmModal = $("confirmModal");
-  $("confirmCloseBtn")?.addEventListener("click", () => closeModal(confirmModal));
-  $("confirmCancelBtn")?.addEventListener("click", () => closeModal(confirmModal));
-  confirmModal?.addEventListener("click", (e) => { if (e.target === confirmModal) closeModal(confirmModal); });
-
-  $("confirmDeleteBtn")?.addEventListener("click", async () => {
-    if (!pendingDelete?.id) return;
-    await deleteFile(pendingDelete.id);
-  });
-
-  renderAdminState();
-}
-
-// -----------------------------
-// Boot
-// -----------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  initPolicyModal();
-  initPublicForm();
-  initPeopleModal();
-  initAdmin();
+  window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
 });
+
+// Close modals when clicking outside
+document.querySelectorAll(".modalBackdrop").forEach((backdrop) => {
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeModal(backdrop.id);
+  });
+});
+
+// Try restore session on load (only affects admin modal when opened)
+tryRestoreSession();
