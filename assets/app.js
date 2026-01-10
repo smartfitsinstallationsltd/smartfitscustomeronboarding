@@ -1,453 +1,517 @@
-// ============================
-// CONFIG (SET THIS)
-// ============================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
+// ========= Helpers =========
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-// ============================
-// Helpers
-// ============================
-const $ = (id) => document.getElementById(id);
-
-function openModal(id){ $(id).classList.add("show"); $(id).setAttribute("aria-hidden","false"); }
-function closeModal(id){ $(id).classList.remove("show"); $(id).setAttribute("aria-hidden","true"); }
-
-function fmtNiceDate(isoOrString){
-  const d = new Date(isoOrString);
-  if (Number.isNaN(d.getTime())) return String(isoOrString || "");
-  // e.g. 10 January 2026 at 10:41 AM GMT
-  const opts = { day:"numeric", month:"long", year:"numeric" };
-  const datePart = d.toLocaleDateString("en-GB", opts);
-  const timePart = d.toLocaleTimeString("en-GB", { hour:"numeric", minute:"2-digit", hour12:true });
-  return `${datePart} at ${timePart} GMT`;
-}
-
-async function api(action, payload = {}, token = null){
-  const res = await fetch("/api/" + action, {
+async function apiPost(path, payload) {
+  const res = await fetch(path, {
     method: "POST",
-    headers: { "Content-Type":"application/json", ...(token ? { "Authorization": `Bearer ${token}` } : {}) },
-    body: JSON.stringify(payload)
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
   });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.ok === false) {
-    const msg = json.error || `Request failed (${res.status})`;
-    throw new Error(msg);
+
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); } catch { json = { ok: false, error: text }; }
+
+  if (!res.ok || json?.ok === false) {
+    throw new Error(json?.error || `Request failed (${res.status})`);
   }
   return json;
 }
 
-// ============================
-// Policy checkbox
-// ============================
-const acceptPolicy = $("acceptPolicy");
-const acceptPolicyValue = $("acceptPolicyValue");
-
-if (acceptPolicy) {
-  acceptPolicy.addEventListener("change", () => {
-    acceptPolicyValue.value = acceptPolicy.checked ? "Yes" : "No";
-  });
+function openModal(modalEl) {
+  modalEl.classList.add("open");
+  modalEl.setAttribute("aria-hidden", "false");
+}
+function closeModal(modalEl) {
+  modalEl.classList.remove("open");
+  modalEl.setAttribute("aria-hidden", "true");
 }
 
-// ============================
-// Policy modal
-// ============================
-$("openPolicyBtn")?.addEventListener("click", () => openModal("policyModal"));
+function fmtDateTime(isoLike) {
+  try {
+    const d = new Date(isoLike);
+    if (isNaN(d.getTime())) return String(isoLike || "");
+    return d.toLocaleString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+  } catch {
+    return String(isoLike || "");
+  }
+}
 
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-close]");
-  if (!btn) return;
-  closeModal(btn.getAttribute("data-close"));
-});
+// ========= Tabs =========
+const tabButtons = $$(".tabBtn");
+const tabSections = $$(".tabSection");
 
-// ============================
-// Person modal
-// ============================
-document.querySelectorAll(".person").forEach((btn) => {
+tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    const data = JSON.parse(btn.getAttribute("data-person") || "{}");
-    $("personTitle").textContent = data.name || "Team Member";
-    $("personImg").src = data.img || "";
-    $("personImg").alt = data.name || "";
-    $("personName").textContent = data.name || "";
-    $("personRole").textContent = data.role || "";
-
-    const email = data.email || "";
-    const phone = data.phone || "";
-
-    $("personEmailLine").textContent = email ? `Email: ${email}` : "Email: —";
-    $("personPhoneLine").textContent = phone ? `Phone: ${phone}` : "Phone: —";
-
-    const emailBtn = $("personEmailBtn");
-    emailBtn.classList.toggle("hidden", !email);
-    emailBtn.href = email ? `mailto:${email}` : "#";
-
-    const callBtn = $("personCallBtn");
-    callBtn.classList.toggle("hidden", !phone);
-    callBtn.href = phone ? `tel:${phone.replace(/\s+/g,"")}` : "#";
-
-    openModal("personModal");
+    tabButtons.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const target = btn.dataset.tab;
+    tabSections.forEach((s) => s.classList.toggle("hidden", s.dataset.tab !== target));
   });
 });
 
-// ============================
-// Form submit
-// ============================
-$("clearBtn")?.addEventListener("click", () => {
-  $("deploymentForm").reset();
-  acceptPolicyValue.value = "No";
-  $("status").textContent = "";
+// ========= Form submit message tweak =========
+const deploymentForm = $("#deploymentForm");
+const statusEl = $("#status");
+
+deploymentForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!statusEl) return;
+
+  try {
+    statusEl.textContent = "Submitting…";
+    statusEl.classList.remove("error");
+
+    const fd = new FormData(deploymentForm);
+    const payload = Object.fromEntries(fd.entries());
+    payload.acceptPolicyValue = $("#acceptPolicy")?.checked ? "Yes" : "No";
+
+    await apiPost("/api/submit", payload);
+
+    statusEl.textContent = "Submitted successfully. Thank you for the business.";
+  } catch (err) {
+    statusEl.textContent = err.message || "Submission failed.";
+    statusEl.classList.add("error");
+  }
 });
 
-$("deploymentForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const status = $("status");
-  status.textContent = "Submitting…";
+// ========= Person profile modal =========
+const profileModal = $("#profileModal");
+const profileCloseBtn = $("#closeProfileBtn");
+const profileTitle = $("#profileTitle");
+const profileRole = $("#profileRole");
+const profileEmail = $("#profileEmail");
+const profilePhone = $("#profilePhone");
 
-  try{
-    const form = e.target;
-    const data = Object.fromEntries(new FormData(form).entries());
+profileCloseBtn?.addEventListener("click", () => closeModal(profileModal));
 
-    if (!data.acceptPolicyValue || data.acceptPolicyValue !== "Yes") {
-      throw new Error("Please accept the Cancellation Policy to continue.");
+function showProfile({ name, role, email, phone }) {
+  profileTitle.textContent = name || "";
+  profileRole.textContent = role || "";
+
+  // Contact details
+  if (email) {
+    profileEmail.innerHTML = `Email: <a class="contactLink" href="mailto:${email}">${email}</a>`;
+    profileEmail.style.display = "block";
+  } else {
+    profileEmail.style.display = "none";
+  }
+
+  if (phone) {
+    const tel = phone.replace(/\s+/g, "");
+    profilePhone.innerHTML = `Phone: <a class="contactLink" href="tel:${tel}">${phone}</a>`;
+    profilePhone.style.display = "block";
+  } else {
+    profilePhone.style.display = "none";
+  }
+
+  openModal(profileModal);
+}
+
+$$(".person[data-email]").forEach((card) => {
+  card.addEventListener("click", () => {
+    showProfile({
+      name: card.dataset.name,
+      role: card.dataset.role,
+      email: card.dataset.email,
+      phone: card.dataset.phone || "",
+    });
+  });
+
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      card.click();
     }
-
-    await api("submit", { action:"submitForm", ...data, appsScriptUrl: APPS_SCRIPT_URL });
-
-    status.textContent = "Submitted successfully. Thank you for the business.";
-    form.reset();
-    acceptPolicyValue.value = "No";
-  }catch(err){
-    status.textContent = `Error: ${err.message}`;
-  }
+  });
 });
 
-// ============================
-// Admin modal state + auth
-// ============================
-let adminToken = localStorage.getItem("sf_admin_token") || "";
-let adminInfo = null;
+// ========= Admin =========
+const adminOpenBtn = $("#openAdminBtn");
+const adminModal = $("#adminModal");
+const adminCloseBtn = $("#closeAdminBtn");
 
-function setAdminUI(signedIn){
-  $("adminSignedOutView").classList.toggle("hidden", signedIn);
-  $("adminSignedInView").classList.toggle("hidden", !signedIn);
+const adminStatus = $("#adminStatus");
+const signInPanel = $("#adminSignInPanel");
+const dashboardPanel = $("#adminDashboardPanel");
+const signedInText = $("#signedInText");
+const logoutBtn = $("#logoutBtn");
+
+const adminEmail = $("#adminEmail");
+const adminPassword = $("#adminPassword");
+const adminLoginBtn = $("#adminLoginBtn");
+const adminClearBtn = $("#adminClearBtn");
+
+// files
+const filesQuery = $("#filesQuery");
+const filesFrom = $("#filesFrom");
+const filesTo = $("#filesTo");
+const filesSearchBtn = $("#filesSearchBtn");
+const filesToggleDates = $("#filesToggleDates");
+const filesDateArea = $("#filesDateArea");
+const filesTableBody = $("#filesTableBody");
+
+// logs
+const logsPanel = $("#logsPanel");
+const logsFrom = $("#logsFrom");
+const logsTo = $("#logsTo");
+const logsEmail = $("#logsEmail");
+const logsType = $("#logsType");
+const logsLoadBtn = $("#logsLoadBtn");
+const logsTableBody = $("#logsTableBody");
+
+// welcome email
+const welcomeCompany = $("#welcomeCompany");
+const welcomeContact = $("#welcomeContact");
+const welcomeEmail = $("#welcomeEmail");
+const welcomeOpenBtn = $("#welcomeOpenBtn");
+const welcomeStatus = $("#welcomeStatus");
+
+// log details modal
+const logDetailsModal = $("#logDetailsModal");
+const closeLogDetailsBtn = $("#closeLogDetailsBtn");
+const logDetailsBox = $("#logDetailsBox");
+
+closeLogDetailsBtn?.addEventListener("click", () => closeModal(logDetailsModal));
+
+function setAdminStatus(msg, isError = false) {
+  adminStatus.textContent = msg || "";
+  adminStatus.classList.toggle("error", !!isError);
 }
 
-function setLogsVisibility(){
-  const can = !!(adminInfo && adminInfo.canViewLogs);
-  $("logsCard").classList.toggle("hidden", !can);
+function getToken() {
+  return localStorage.getItem("sf_admin_token") || "";
+}
+function setToken(t) {
+  if (t) localStorage.setItem("sf_admin_token", t);
+  else localStorage.removeItem("sf_admin_token");
+}
+function setAdminInfo(a) {
+  if (a) localStorage.setItem("sf_admin_info", JSON.stringify(a));
+  else localStorage.removeItem("sf_admin_info");
+}
+function getAdminInfo() {
+  try { return JSON.parse(localStorage.getItem("sf_admin_info") || "null"); }
+  catch { return null; }
 }
 
-$("openAdminBtn")?.addEventListener("click", async () => {
-  openModal("adminModal");
-  await tryRestoreSession();
-});
+function setSignedOutUI() {
+  signInPanel.style.display = "block";
+  dashboardPanel.style.display = "none";
+  logoutBtn.style.display = "none";
+  signedInText.textContent = "";
+  setAdminStatus("");
+}
 
-async function tryRestoreSession(){
-  if (!adminToken) {
-    adminInfo = null;
-    setAdminUI(false);
-    return;
-  }
-  try{
-    const r = await api("whoami", { action:"whoami", appsScriptUrl: APPS_SCRIPT_URL }, adminToken);
-    adminInfo = r.admin;
-    $("adminSignedInAs").textContent = `Signed in as ${adminInfo.name} (${adminInfo.email})`;
-    setAdminUI(true);
-    setLogsVisibility();
-  }catch{
-    adminToken = "";
-    localStorage.removeItem("sf_admin_token");
-    adminInfo = null;
-    setAdminUI(false);
+function setSignedInUI(admin) {
+  signInPanel.style.display = "none";
+  dashboardPanel.style.display = "block";
+  logoutBtn.style.display = "inline-flex";
+  signedInText.textContent = `Signed in as ${admin?.name || ""} (${admin?.email || ""})`;
+  setAdminStatus("");
+
+  const canViewLogs = !!admin?.canViewLogs;
+  logsPanel.style.display = canViewLogs ? "block" : "none";
+}
+
+async function initAdminSession() {
+  const token = getToken()
+  if (!token) return setSignedOutUI();
+
+  try {
+    const data = await apiPost("/api/whoami", { token });
+    setAdminInfo(data.admin);
+    setSignedInUI(data.admin);
+  } catch {
+    setToken("");
+    setAdminInfo(null);
+    setSignedOutUI();
   }
 }
 
-// login
-$("adminClearBtn")?.addEventListener("click", () => {
-  $("adminEmail").value = "";
-  $("adminPassword").value = "";
-  $("adminLoginStatus").textContent = "";
+// Open/close modal
+adminOpenBtn?.addEventListener("click", () => {
+  openModal(adminModal);
+  initAdminSession();
+});
+adminCloseBtn?.addEventListener("click", () => closeModal(adminModal));
+
+// Clear
+adminClearBtn?.addEventListener("click", () => {
+  adminEmail.value = "";
+  adminPassword.value = "";
+  setAdminStatus("");
 });
 
-$("adminLoginForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  $("adminLoginStatus").textContent = "Signing in…";
-  try{
-    const email = $("adminEmail").value.trim();
-    const password = $("adminPassword").value;
-
-    const r = await api("admin-login", { action:"adminLogin", email, password, appsScriptUrl: APPS_SCRIPT_URL });
-    adminToken = r.token;
-    localStorage.setItem("sf_admin_token", adminToken);
-    adminInfo = r.admin;
-
-    $("adminSignedInAs").textContent = `Signed in as ${adminInfo.name} (${adminInfo.email})`;
-    setAdminUI(true);
-    setLogsVisibility();
-    $("adminLoginStatus").textContent = "";
-  }catch(err){
-    $("adminLoginStatus").textContent = `Login failed: ${err.message}`;
-  }
-});
-
-$("adminLogoutBtn")?.addEventListener("click", () => {
-  adminToken = "";
-  adminInfo = null;
-  localStorage.removeItem("sf_admin_token");
-  setAdminUI(false);
-});
-
-// ============================
-// Files search (name-only + toggle date)
-// ============================
-let dateEnabled = false;
-
-function updateSearchMode(){
-  $("dateFilters").classList.toggle("hidden", !dateEnabled);
-  $("searchOnlyActions").classList.toggle("hidden", dateEnabled);
-  $("toggleDateBtn").textContent = dateEnabled ? "Hide date search" : "Search by date too";
-}
-
-$("toggleDateBtn")?.addEventListener("click", () => {
-  dateEnabled = !dateEnabled;
-  updateSearchMode();
-});
-
-updateSearchMode();
-
-async function loadFiles(){
-  const status = $("filesStatus");
-  status.textContent = "Searching…";
-  $("filesTbody").innerHTML = "";
-
-  try{
-    const query = $("fileQuery").value.trim();
-    const fromDate = dateEnabled ? ($("fromDate").value || "") : "";
-    const toDate = dateEnabled ? ($("toDate").value || "") : "";
-
-    const r = await api("files", {
-      action:"listFiles",
-      query,
-      fromDate,
-      toDate,
-      appsScriptUrl: APPS_SCRIPT_URL
-    }, adminToken);
-
-    const files = r.files || [];
-    if (!files.length){
-      $("filesTbody").innerHTML = `<tr><td colspan="3" class="muted">No results.</td></tr>`;
-      status.textContent = "";
+// Login
+adminLoginBtn?.addEventListener("click", async () => {
+  try {
+    setAdminStatus("Signing in…");
+    const email = (adminEmail.value || "").trim();
+    const password = adminPassword.value || "";
+    if (!email || !password) {
+      setAdminStatus("Please enter email and password.", true);
       return;
     }
 
-    $("filesTbody").innerHTML = files.map(f => {
-      const safeName = (f.name || "").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      return `
-        <tr>
-          <td>${safeName}</td>
-          <td class="nowrap">${f.created || ""}</td>
-          <td class="nowrap">
-            <div class="actionRow">
-              <a class="actionLink" href="${f.url}" target="_blank" rel="noopener">View</a>
-              <button class="pillDanger" type="button" data-del="${f.id}" data-name="${safeName}">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-    status.textContent = "";
-  }catch(err){
-    status.textContent = `Error: ${err.message}`;
-    $("filesTbody").innerHTML = `<tr><td colspan="3" class="muted">Search failed.</td></tr>`;
-  }
-}
-
-$("fileSearchBtn")?.addEventListener("click", loadFiles);
-$("fileSearchBtn2")?.addEventListener("click", loadFiles);
-
-$("filesTable")?.addEventListener("click", async (e) => {
-  const btn = e.target.closest("[data-del]");
-  if (!btn) return;
-  const id = btn.getAttribute("data-del");
-  const name = btn.getAttribute("data-name") || "this file";
-  if (!confirm(`Delete ${name}?`)) return;
-
-  $("filesStatus").textContent = "Deleting…";
-  try{
-    await api("delete-file", { action:"deleteFile", fileId:id, appsScriptUrl: APPS_SCRIPT_URL }, adminToken);
-    await loadFiles();
-  }catch(err){
-    $("filesStatus").textContent = `Error: ${err.message}`;
+    const data = await apiPost("/api/admin-login", { email, password });
+    setToken(data.token);
+    setAdminInfo(data.admin);
+    setSignedInUI(data.admin);
+    setAdminStatus("Signed in.");
+  } catch (e) {
+    setAdminStatus(e.message || "Login failed.", true);
   }
 });
 
-// ============================
-// Logs (plain English + details modal)
-// ============================
-function summarizeLog(l){
-  const t = (l.actionType || "").toUpperCase();
-  if (t === "LOGIN") return "Admin signed in";
+// Logout
+logoutBtn?.addEventListener("click", () => {
+  setToken("");
+  setAdminInfo(null);
+  setSignedOutUI();
+});
+
+// ========= Files: toggle date search =========
+let datesEnabled = false;
+function setDateUI() {
+  filesDateArea.classList.toggle("hidden", !datesEnabled);
+  filesToggleDates.textContent = datesEnabled ? "Hide date search" : "Search by date too?";
+}
+filesToggleDates?.addEventListener("click", () => {
+  datesEnabled = !datesEnabled;
+  setDateUI();
+});
+setDateUI();
+
+function tokenGuard() {
+  const token = getToken();
+  if (!token) throw new Error("Please sign in to use the admin dashboard.");
+  return token;
+}
+
+filesSearchBtn?.addEventListener("click", async () => {
+  try {
+    const token = tokenGuard();
+    filesTableBody.innerHTML = "";
+    setAdminStatus("Searching files…");
+
+    const query = (filesQuery.value || "").trim();
+    const fromDate = datesEnabled ? (filesFrom.value || "").trim() : "";
+    const toDate = datesEnabled ? (filesTo.value || "").trim() : "";
+
+    const data = await apiPost("/api/files", { token, query, fromDate, toDate });
+    const files = data.files || [];
+
+    if (!files.length) {
+      filesTableBody.innerHTML = `<tr><td colspan="3" class="smallMuted">No files found.</td></tr>`;
+      setAdminStatus("No results.");
+      return;
+    }
+
+    files.forEach((f) => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${escapeHtml(f.name || "")}</td>
+        <td>${escapeHtml(f.created || "")}</td>
+        <td>
+          <div class="actionsInline">
+            <a class="linkBtn" href="${escapeAttr(f.url || "#")}" target="_blank" rel="noopener">View</a>
+            <button class="linkBtn btnDanger" data-del="${escapeAttr(f.id)}">Delete</button>
+          </div>
+        </td>
+      `;
+      filesTableBody.appendChild(tr);
+    });
+
+    // delete handlers
+    $$("button[data-del]", filesTableBody).forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del");
+        if (!id) return;
+        if (!confirm("Are you sure you want to delete this file?")) return;
+
+        try {
+          setAdminStatus("Deleting file…");
+          await apiPost("/api/delete-file", { token, fileId: id });
+          setAdminStatus("File deleted.");
+          filesSearchBtn.click(); // refresh list
+        } catch (e) {
+          setAdminStatus(e.message || "Delete failed.", true);
+        }
+      });
+    });
+
+    setAdminStatus("Files loaded.");
+  } catch (e) {
+    setAdminStatus(e.message || "Search failed.", true);
+  }
+});
+
+// ========= Logs: plain English + details =========
+function humanAction(actionType = "") {
+  const t = String(actionType || "").toUpperCase();
+  if (t === "LOGIN") return "Signed in";
   if (t === "DELETE_FILE") return "Deleted file";
   if (t === "SEND_WELCOME_EMAIL") return "Prepared welcome email";
-  return "Activity";
+  if (t === "SUBMIT_FORM") return "Onboarding form submitted";
+  return t ? t.replace(/_/g, " ").toLowerCase().replace(/^\w/, c => c.toUpperCase()) : "Activity";
 }
 
-function buildLogDetails(l){
-  let detailsObj = {};
-  try{ detailsObj = l.details ? JSON.parse(l.details) : {}; }catch{ detailsObj = { raw: l.details }; }
+function parseDetails(details) {
+  if (!details) return null;
+  if (typeof details === "object") return details;
+  try { return JSON.parse(details); } catch { return { raw: String(details) }; }
+}
 
+function renderDetailsModal(row) {
+  const detailsObj = parseDetails(row.details);
   const lines = [];
-  lines.push(`<div class="miniTitle">User</div><div>${(l.adminEmail || "")}</div>`);
-  lines.push(`<div class="lineGap"></div>`);
-  lines.push(`<div class="miniTitle">Action</div><div>${(l.actionType || "")}</div>`);
-  lines.push(`<div class="lineGap"></div>`);
-  lines.push(`<div class="miniTitle">Timestamp</div><div>${fmtNiceDate(l.timestamp)}</div>`);
 
-  // nice extras
-  if (detailsObj.fileName){
-    lines.push(`<div class="lineGap"></div>`);
-    lines.push(`<div class="miniTitle">File Name</div><div>${detailsObj.fileName}</div>`);
-  }
-  if (detailsObj.customerEmail){
-    lines.push(`<div class="lineGap"></div>`);
-    lines.push(`<div class="miniTitle">Customer Email</div><div>${detailsObj.customerEmail}</div>`);
-  }
-  if (!detailsObj.fileName && !detailsObj.customerEmail && l.details){
-    lines.push(`<div class="lineGap"></div>`);
-    lines.push(`<div class="miniTitle">Raw Details</div><pre style="white-space:pre-wrap;margin:0;color:#cbd5e1">${String(l.details)}</pre>`);
-  }
+  lines.push(`<div class="detailsBox">`);
+  lines.push(`<div><strong>User:</strong> ${escapeHtml(row.adminEmail || "")}</div>`);
+  lines.push(`<div><strong>Action:</strong> ${escapeHtml(humanAction(row.actionType))}</div>`);
+  lines.push(`<div><strong>Timestamp:</strong> ${escapeHtml(fmtDateTime(row.timestamp))}</div>`);
 
-  return `<div style="display:grid; gap:6px;">${lines.join("")}</div>`;
+  if (detailsObj?.fileName) lines.push(`<div><strong>File Name:</strong> ${escapeHtml(detailsObj.fileName)}</div>`);
+  if (detailsObj?.companyName) lines.push(`<div><strong>Company:</strong> ${escapeHtml(detailsObj.companyName)}</div>`);
+  if (detailsObj?.customerEmail) lines.push(`<div><strong>Customer Email:</strong> ${escapeHtml(detailsObj.customerEmail)}</div>`);
+
+  // raw JSON (collapsed style)
+  lines.push(`<div style="margin-top:10px; opacity:0.9;"><strong>More details:</strong></div>`);
+  lines.push(`<pre style="margin:8px 0 0; white-space:pre-wrap; word-break:break-word; font-size:12px; color:rgba(229,231,235,0.78);">${escapeHtml(JSON.stringify(detailsObj, null, 2))}</pre>`);
+  lines.push(`</div>`);
+
+  logDetailsBox.innerHTML = lines.join("");
+  openModal(logDetailsModal);
 }
 
-$("loadLogsBtn")?.addEventListener("click", async () => {
-  const status = $("logsStatus");
-  status.textContent = "Loading…";
-  $("logsTbody").innerHTML = "";
+logsLoadBtn?.addEventListener("click", async () => {
+  try {
+    const token = tokenGuard();
 
-  try{
-    const r = await api("logs", {
-      action:"listLogs",
-      fromDate: $("logFrom").value || "",
-      toDate: $("logTo").value || "",
-      adminEmail: $("logEmailContains").value.trim(),
-      actionType: $("logType").value || "",
-      appsScriptUrl: APPS_SCRIPT_URL
-    }, adminToken);
+    logsTableBody.innerHTML = "";
+    setAdminStatus("Loading logs…");
 
-    const logs = r.logs || [];
-    if (!logs.length){
-      $("logsTbody").innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
-      status.textContent = "";
+    const admin = getAdminInfo();
+    if (!admin?.canViewLogs) {
+      setAdminStatus("You do not have permission to view logs.", true);
       return;
     }
 
-    $("logsTbody").innerHTML = logs.map((l, idx) => {
-      const when = fmtNiceDate(l.timestamp);
-      const admin = `${l.adminName || ""} (${l.adminEmail || ""})`;
-      const action = l.actionType || "";
-      const summary = summarizeLog(l);
-      const payload = encodeURIComponent(JSON.stringify(l));
-      return `
-        <tr data-log="${payload}" style="cursor:pointer;">
-          <td class="nowrap">${when}</td>
-          <td>${admin}</td>
-          <td class="nowrap">${action}</td>
-          <td>${summary}</td>
-        </tr>
-      `;
-    }).join("");
+    const data = await apiPost("/api/logs", {
+      token,
+      fromDate: (logsFrom.value || "").trim(),
+      toDate: (logsTo.value || "").trim(),
+      adminEmail: (logsEmail.value || "").trim(),
+      actionType: (logsType.value || "All"),
+    });
 
-    status.textContent = "";
-  }catch(err){
-    status.textContent = `Error: ${err.message}`;
-    $("logsTbody").innerHTML = `<tr><td colspan="4" class="muted">Could not load logs.</td></tr>`;
+    const logs = data.logs || [];
+    if (!logs.length) {
+      logsTableBody.innerHTML = `<tr><td colspan="4" class="smallMuted">No logs found.</td></tr>`;
+      setAdminStatus("No logs.");
+      return;
+    }
+
+    logs.forEach((row) => {
+      const tr = document.createElement("tr");
+      const title = humanAction(row.actionType);
+      const subtitle = `${row.adminEmail || ""} • ${fmtDateTime(row.timestamp)}`;
+
+      tr.innerHTML = `
+        <td>
+          <div class="logRowSummary">
+            <div class="logTitle">${escapeHtml(title)}</div>
+            <div class="logSub">${escapeHtml(subtitle)}</div>
+          </div>
+        </td>
+        <td>${escapeHtml(row.adminName || "")}</td>
+        <td>${escapeHtml(row.adminEmail || "")}</td>
+        <td><button class="linkBtn" data-log="1">View details</button></td>
+      `;
+
+      tr.querySelector('button[data-log="1"]').addEventListener("click", () => {
+        renderDetailsModal(row);
+      });
+
+      logsTableBody.appendChild(tr);
+    });
+
+    setAdminStatus("Logs loaded.");
+  } catch (e) {
+    setAdminStatus(e.message || "Logs failed.", true);
   }
 });
 
-$("logsTable")?.addEventListener("click", (e) => {
-  const tr = e.target.closest("tr[data-log]");
-  if (!tr) return;
-  const l = JSON.parse(decodeURIComponent(tr.getAttribute("data-log")));
-  $("logDetailBody").innerHTML = buildLogDetails(l);
-  openModal("logDetailModal");
-});
-
-// ============================
-// Welcome email (.eml + mailto fallback)
-// ============================
-function escapeHtml(s){
-  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
-function buildWelcomeEmailHtml(companyName, displayName){
+// ========= Welcome Email: generate .eml and open in Outlook =========
+// (This does NOT send from Google. It creates a ready email file that user sends from their own mailbox.)
+function buildWelcomeHtml(companyName, contactName) {
+  const display = contactName || companyName || "there";
   const url = "https://smartfitscustomeronboarding.pages.dev";
-  const who = escapeHtml(displayName || companyName || "there");
 
-  return `
-<!doctype html>
+  return `<!doctype html>
 <html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#020617;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#e5e7eb;">
-  <div style="max-width:640px;margin:0 auto;padding:24px;">
-    <div style="border:1px solid #1f2937;border-radius:16px;padding:22px;background:#020617;">
-      <div style="margin-bottom:14px;">
-        <span style="display:inline-block;padding:6px 10px;border:1px solid #1f2937;border-radius:999px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:#ef4444;margin-right:8px;vertical-align:middle;"></span>
-          <span style="font-weight:800;letter-spacing:.12em;font-size:12px;vertical-align:middle;">SMARTFITS</span>
-        </span>
-      </div>
-
-      <h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#f9fafb;">Welcome to SmartFits</h1>
-      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#e5e7eb;">Dear ${who},</p>
-
-      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#e5e7eb;">
-        Welcome to <b>SmartFits Installations</b>. We’re delighted to have you on board and excited to begin supporting your fleet.
-      </p>
-
-      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#e5e7eb;">
-        To help you get started, we’ve prepared a dedicated Customer Onboarding Pack with everything you need to know about working with us.
-      </p>
-
-      <div style="margin:16px 0 18px;">
-        <a href="${url}" style="display:inline-block;padding:10px 16px;border-radius:999px;background:#4b84ff;color:#061022;font-weight:800;text-decoration:none;font-size:14px;">
-          View Customer Onboarding Pack
-        </a>
-      </div>
-
-      <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#9ca3af;">Your Onboarding Pack includes:</p>
-      <ul style="margin:0 0 14px 18px;padding:0;font-size:13px;line-height:1.6;color:#9ca3af;">
-        <li>Key onboarding information</li>
-        <li>How the installation and deployment process works</li>
-        <li>Main contacts and how to reach our support team</li>
-      </ul>
-
-      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #1f2937;">
-        <p style="margin:0;font-size:12px;line-height:1.6;color:#9aa4b2;">
-          SmartFits Installations Limited • 01283 533330 • support@smartfits.co.uk
-        </p>
-      </div>
-    </div>
-  </div>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome to SmartFits</title></head>
+<body style="margin:0;padding:0;background:#020617;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#020617;padding:24px 0;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:640px;border:1px solid #1f2937;border-radius:16px;background:#020617;color:#e5e7eb;padding:22px;">
+        <tr><td style="padding-bottom:12px;">
+          <div style="font-weight:800;letter-spacing:.12em;font-size:13px;color:#f9fafb;">
+            <span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:999px;margin-right:8px;vertical-align:middle;"></span>
+            SMARTFITS
+          </div>
+        </td></tr>
+        <tr><td>
+          <h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#f9fafb;">Welcome to SmartFits</h1>
+          <p style="margin:0 0 10px;font-size:14px;line-height:1.7;color:#e5e7eb;">Dear ${escapeHtml(display)},</p>
+          <p style="margin:0 0 10px;font-size:14px;line-height:1.7;color:#e5e7eb;">
+            Welcome to <strong>SmartFits Installations Ltd</strong>. We’re delighted to have you on board and look forward to supporting your fleet.
+          </p>
+          <p style="margin:0 0 14px;font-size:14px;line-height:1.7;color:#e5e7eb;">
+            Your Customer Onboarding Pack is ready here:
+          </p>
+          <p style="margin:0 0 18px;">
+            <a href="${url}" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#4b84ff;color:#020617;font-weight:800;text-decoration:none;">
+              View Customer Onboarding Pack
+            </a>
+          </p>
+          <p style="margin:0;font-size:12px;line-height:1.7;color:#94a3b8;">
+            If you have any questions, please reply to this email or contact <a href="mailto:support@smartfits.co.uk" style="color:#cbd5e1;text-decoration:none;">support@smartfits.co.uk</a>.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
 </body>
-</html>
-`.trim();
+</html>`;
 }
 
-function buildEml({to, subject, html, text}){
-  // Basic EML (works well with Outlook desktop + Apple Mail)
-  const headers = [
+function makeEml({ to, subject, html }) {
+  // Keep headers simple. The sender will be the user’s mailbox once they send.
+  return [
     `To: ${to}`,
     `Subject: ${subject}`,
     `MIME-Version: 1.0`,
     `Content-Type: text/html; charset="UTF-8"`,
+    ``,
+    html,
   ].join("\r\n");
-
-  return `${headers}\r\n\r\n${html || escapeHtml(text || "")}\r\n`;
 }
 
-function downloadFile(filename, content, mime){
-  const blob = new Blob([content], { type: mime });
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime || "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -455,69 +519,43 @@ function downloadFile(filename, content, mime){
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 500);
+  URL.revokeObjectURL(url);
 }
 
-$("downloadEmlBtn")?.addEventListener("click", async () => {
-  const status = $("welcomeStatus");
-  status.textContent = "";
+welcomeOpenBtn?.addEventListener("click", () => {
+  try {
+    const companyName = (welcomeCompany.value || "").trim();
+    const contactName = (welcomeContact.value || "").trim();
+    const to = (welcomeEmail.value || "").trim();
 
-  const company = $("welCompany").value.trim();
-  const name = $("welName").value.trim();
-  const email = $("welEmail").value.trim();
+    if (!companyName) throw new Error("Please enter the Customer / Company Name.");
+    if (!to) throw new Error("Please enter the Customer Email Address.");
 
-  if (!company) return status.textContent = "Please enter a company name.";
-  if (!email) return status.textContent = "Please enter the customer email address.";
+    const subject = "Welcome to SmartFits – Your Customer Onboarding Pack";
+    const html = buildWelcomeHtml(companyName, contactName);
+    const eml = makeEml({ to, subject, html });
 
-  const display = name || company;
-  const subject = "Welcome to SmartFits – Your Customer Onboarding Pack";
-  const html = buildWelcomeEmailHtml(company, display);
+    const safeCompany = companyName.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "_").slice(0, 60);
+    const filename = `SmartFits_Welcome_${safeCompany || "Customer"}.eml`;
 
-  // Download .eml (best for Outlook desktop)
-  downloadFile(`SmartFits_Welcome_${company.replace(/\s+/g,"_")}.eml`, buildEml({
-    to: email,
-    subject,
-    html
-  }), "message/rfc822");
-
-  status.textContent = "Downloaded .eml file. Open it and press Send.";
-});
-
-$("openMailtoBtn")?.addEventListener("click", () => {
-  const company = $("welCompany").value.trim();
-  const name = $("welName").value.trim();
-  const email = $("welEmail").value.trim();
-  const display = name || company || "there";
-
-  if (!company || !email){
-    $("welcomeStatus").textContent = "Enter company name + customer email first.";
-    return;
+    downloadFile(filename, eml, "message/rfc822");
+    welcomeStatus.textContent = "Downloaded .eml file — open it in Outlook and press Send.";
+    welcomeStatus.classList.remove("error");
+  } catch (e) {
+    welcomeStatus.textContent = e.message || "Could not generate email.";
+    welcomeStatus.classList.add("error");
   }
-
-  const subject = encodeURIComponent("Welcome to SmartFits – Your Customer Onboarding Pack");
-  const body = encodeURIComponent(
-`Dear ${display},
-
-Welcome to SmartFits Installations. We’re delighted to have you on board.
-
-Please view your Customer Onboarding Pack here:
-https://smartfitscustomeronboarding.pages.dev
-
-If you have any questions, reply to this email or contact support@smartfits.co.uk.
-
-Kind regards,
-SmartFits Installations Ltd`
-  );
-
-  window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
 });
 
-// Close modals when clicking outside
-document.querySelectorAll(".modalBackdrop").forEach((backdrop) => {
-  backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) closeModal(backdrop.id);
-  });
-});
-
-// Try restore session on load (only affects admin modal when opened)
-tryRestoreSession();
+// ========= Utilities =========
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replaceAll("`", "");
+}
