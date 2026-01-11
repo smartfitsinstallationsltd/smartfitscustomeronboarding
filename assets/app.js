@@ -3,9 +3,9 @@
  ****************************************************/
 
 // ✅ Your Google Apps Script Web App URL (the /exec endpoint)
-const GAS_WEB_APP_URL = window.GAS_WEB_APP_URL || ""; 
+// const GAS_WEB_APP_URL = window.GAS_WEB_APP_URL || ""; 
 // If you prefer hard-code:
-// const GAS_WEB_APP_URL = "https://script.google.com/macros/s/XXXX/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
 /****************************************************
  * PUBLIC FORM
@@ -636,3 +636,4 @@ function escapeHtmlAttr(str){
   // same as escapeHtml, but safe for attributes
   return escapeHtml(str).replaceAll('\n','&#10;').replaceAll('\r','&#13;');
 }
+
