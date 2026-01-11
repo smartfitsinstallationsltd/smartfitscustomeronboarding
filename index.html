@@ -20,10 +20,9 @@
         </div>
 
         <div class="headRight">
-          <div class="chip">Client Information &amp; Form</div>
-
-          <!-- ✅ Admin sign-in button (NOT a link) so it won’t scroll/jump -->
+          <!-- ✅ Removed "Client Information & Form" chip -->
           <button type="button" class="chipBtn" id="openAdminBtn">Sign in as an Admin</button>
+          <button type="button" class="chipBtn ghost" id="logoutBtn" hidden>Log out</button>
         </div>
       </div>
     </div>
@@ -85,7 +84,7 @@
         <div class="teamGrid">
           <button type="button" class="person personBtn" data-person="tara">
             <img class="avatar" alt="Tara Hassall" src="./images/tara_hassall.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Tara Hassall</div>
               <div class="personRole">Managing Director</div>
             </div>
@@ -93,7 +92,7 @@
 
           <button type="button" class="person personBtn" data-person="charlie">
             <img class="avatar" alt="Charlie Inger" src="./images/charlie_inger.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Charlie Inger</div>
               <div class="personRole">Sales &amp; Business Development Manager</div>
             </div>
@@ -112,7 +111,7 @@
         <div class="teamGrid">
           <button type="button" class="person personBtn leaderCard" data-person="emma">
             <img class="avatar" alt="Emma Sumner" src="./images/emma_sumner.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Emma Sumner</div>
               <div class="personRole">Customer Success Team Leader</div>
             </div>
@@ -120,7 +119,7 @@
 
           <button type="button" class="person personBtn" data-person="kelly">
             <img class="avatar" alt="Kelly Mullen" src="./images/kelly_mullen.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Kelly Mullen</div>
               <div class="personRole">Customer Success Team Member</div>
             </div>
@@ -128,7 +127,7 @@
 
           <button type="button" class="person personBtn" data-person="aleks">
             <img class="avatar" alt="Aleks Fossick" src="./images/aleks_fossick.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Aleks Fossick</div>
               <div class="personRole">Customer Success Team Member</div>
             </div>
@@ -151,7 +150,7 @@
         <div class="teamGrid">
           <button type="button" class="person personBtn leaderCard" data-person="roz">
             <img class="avatar" alt="Roz Hardwick" src="./images/roz_hardwick.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Roz Hardwick</div>
               <div class="personRole">Operations Lead</div>
             </div>
@@ -161,7 +160,7 @@
 
           <button type="button" class="person personBtn" data-person="ellie">
             <img class="avatar" alt="Ellie Topliss" src="./images/ellie_topliss.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Ellie Topliss</div>
               <div class="personRole">Project Coordinator</div>
             </div>
@@ -169,7 +168,7 @@
 
           <button type="button" class="person personBtn" data-person="sophie">
             <img class="avatar" alt="Sophie Turner" src="./images/sophie_turner.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Sophie Turner</div>
               <div class="personRole">Project Coordinator</div>
             </div>
@@ -177,7 +176,7 @@
 
           <button type="button" class="person personBtn" data-person="amanda">
             <img class="avatar" alt="Amanda Clarke" src="./images/amanda_clarke.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Amanda Clarke</div>
               <div class="personRole">Field Operations Team Member</div>
             </div>
@@ -185,7 +184,7 @@
 
           <button type="button" class="person personBtn" data-person="rosie">
             <img class="avatar" alt="Rosie Smart" src="./images/rosie_smart.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Rosie Smart</div>
               <div class="personRole">Field Operations Team Member</div>
             </div>
@@ -193,7 +192,7 @@
 
           <button type="button" class="person personBtn" data-person="bridie">
             <img class="avatar" alt="Bridie Southam" src="./images/bridie_southam.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Bridie Southam</div>
               <div class="personRole">Field Operations Team Member</div>
             </div>
@@ -201,7 +200,7 @@
 
           <button type="button" class="person personBtn" data-person="kasia">
             <img class="avatar" alt="Kasia Dzielak" src="./images/kasia_dzielak.png" loading="lazy" />
-            <div>
+            <div class="personMeta">
               <div class="personName">Kasia Dzielak</div>
               <div class="personRole">Field Operations Team Member</div>
             </div>
@@ -359,43 +358,52 @@
     </div>
   </section>
 
-  <!-- CANCELLATION POLICY (main page section stays) -->
-  <div class="doc" id="policyBottom">
-    <p style="margin-top:0;">
-      At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
-      To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
-    </p>
+  <!-- CANCELLATION POLICY (styled like the other blocks) -->
+  <section>
+    <div class="shell">
+      <p class="kicker">Policy</p>
+      <h2>Cancellation Policy</h2>
+      <div class="accentLine"></div>
+      <div class="lineGap"></div>
 
-    <h3 style="margin-top:14px;">Cancellation Notice</h3>
-    <ul>
-      <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
-      <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
-      <li>Business days are defined as Monday to Friday, excluding UK bank holidays. Weekends and bank holidays are not counted as working days for notice periods.</li>
-    </ul>
+      <div class="doc" id="policyBottom">
+        <p style="margin-top:0;">
+          At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
+          To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
+        </p>
 
-    <h3 style="margin-top:14px;">If you wish to cancel an appointment:</h3>
-    <ul>
-      <li>Call us on <b>01283 533330</b>, or</li>
-      <li>Email us at <a href="mailto:support@smartfits.co.uk" class="plainLink">support@smartfits.co.uk</a></li>
-    </ul>
-    <p>We recommend email as it provides a date and time stamp for proof of cancellation.</p>
+        <h3 style="margin-top:14px;">Cancellation Notice</h3>
+        <ul>
+          <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
+          <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
+          <li>Business days are defined as Monday to Friday, excluding UK bank holidays. Weekends and bank holidays are not counted as working days for notice periods.</li>
+        </ul>
 
-    <h3 style="margin-top:14px;">Incomplete Jobs Due to Client-Side Issues</h3>
-    <p>
-      If our engineer attends site and is unable to complete the scheduled work due to client-side issues
-      (e.g., unavailable vehicles, missing equipment, denied access), it is treated as a late cancellation, and:
-    </p>
-    <ul>
-      <li>The client will be charged 100% of the originally quoted full price.</li>
-      <li>Return visits will charge only for additional time/work to complete remaining tasks.</li>
-    </ul>
+        <h3 style="margin-top:14px;">If you wish to cancel an appointment:</h3>
+        <ul>
+          <li>Call us on <b>01283 533330</b>, or</li>
+          <li>Email us at <a href="mailto:support@smartfits.co.uk" class="plainLink">support@smartfits.co.uk</a></li>
+        </ul>
+        <p>We recommend email as it provides a date and time stamp for proof of cancellation.</p>
 
-    <h3 style="margin-top:14px;">Billing Responsibility</h3>
-    <p>
-      This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
-      Fees/communications will be directed to the established account holder.
-    </p>
-  </div>
+        <h3 style="margin-top:14px;">Incomplete Jobs Due to Client-Side Issues</h3>
+        <p>
+          If our engineer attends site and is unable to complete the scheduled work due to client-side issues
+          (e.g., unavailable vehicles, missing equipment, denied access), it is treated as a late cancellation, and:
+        </p>
+        <ul>
+          <li>The client will be charged 100% of the originally quoted full price.</li>
+          <li>Return visits will charge only for additional time/work to complete remaining tasks.</li>
+        </ul>
+
+        <h3 style="margin-top:14px;">Billing Responsibility</h3>
+        <p>
+          This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
+          Fees/communications will be directed to the established account holder.
+        </p>
+      </div>
+    </div>
+  </section>
 
   <!-- FOOTER -->
   <footer>
@@ -415,45 +423,197 @@
     </div>
   </footer>
 
-  <!-- ✅ ADMIN LOGIN MODAL -->
-  <div class="modalBackdrop" id="adminModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+  <!-- ✅ POLICY MODAL (plain text) -->
+  <div class="modalBackdrop" id="policyModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="policyTitle">
       <div class="modalHeader">
-        <div class="title" id="adminTitle">Admin Sign In</div>
-        <button class="closeBtn" type="button" id="closeAdminBtn">Close</button>
+        <div class="title" id="policyTitle">Cancellation Policy</div>
+        <button class="closeBtn" type="button" id="closePolicyBtn">Close</button>
       </div>
-
       <div class="modalBody">
-        <div class="formWrap" style="margin-top:0;">
-          <form id="adminLoginForm" autocomplete="off" novalidate>
-            <div class="fields">
-              <div>
-                <label for="adminEmail">Email</label>
-                <input class="field" id="adminEmail" name="email" type="email" placeholder="name@smartfits.co.uk" required />
-              </div>
+        <div class="modalCopy">
+          <p>
+            At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
+            To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
+          </p>
 
-              <div>
-                <label for="adminPassword">Password</label>
-                <input class="field" id="adminPassword" name="password" type="password" placeholder="••••••••" required />
-              </div>
-            </div>
+          <h3>Cancellation Notice</h3>
+          <ul>
+            <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
+            <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
+            <li>Business days are defined as Monday to Friday, excluding UK bank holidays.</li>
+          </ul>
 
-            <div class="actions">
-              <button type="button" id="adminClearBtn">Clear</button>
-              <button type="submit" class="primary" id="adminSubmitBtn">Sign in</button>
-            </div>
+          <h3>If you wish to cancel an appointment:</h3>
+          <ul>
+            <li>Call us on <b>01283 533330</b>, or</li>
+            <li>Email us at <a href="mailto:support@smartfits.co.uk" class="plainLink">support@smartfits.co.uk</a></li>
+          </ul>
 
-            <div class="status" id="adminStatus"></div>
-          </form>
+          <h3>Incomplete Jobs Due to Client-Side Issues</h3>
+          <p>
+            If our engineer attends site and is unable to complete the scheduled work due to client-side issues, it is treated as a late cancellation.
+          </p>
+
+          <h3>Billing Responsibility</h3>
+          <p>
+            This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
+          </p>
         </div>
-
-        <!-- Your app.js can inject the dashboard UI here if you use it -->
-        <div id="adminDashboardMount"></div>
       </div>
     </div>
   </div>
 
-  <!-- ✅ EMPLOYEE DETAILS MODAL -->
+  <!-- ✅ ADMIN MODAL (popup only, no /admin page) -->
+  <div class="modalBackdrop" id="adminModal" aria-hidden="true">
+    <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modalHeader">
+        <div class="title" id="adminTitle">Admin Area</div>
+        <button class="closeBtn" type="button" id="closeAdminBtn">Close</button>
+      </div>
+
+      <div class="modalBody">
+        <!-- SIGN IN VIEW -->
+        <div id="adminSignInView">
+          <p class="modalHint">Please sign in to access the admin dashboard.</p>
+
+          <div class="formWrap" style="margin-top:0;">
+            <form id="adminLoginForm" autocomplete="off" novalidate>
+              <div class="fields">
+                <div>
+                  <label for="adminEmail">Email</label>
+                  <input class="field" id="adminEmail" name="email" type="email" placeholder="name@smartfits.co.uk" required />
+                </div>
+
+                <div>
+                  <label for="adminPassword">Password</label>
+                  <input class="field" id="adminPassword" name="password" type="password" placeholder="••••••••" required />
+                </div>
+              </div>
+
+              <div class="actions">
+                <button type="button" id="adminClearBtn">Clear</button>
+                <button type="submit" class="primary" id="adminSubmitBtn">Sign in</button>
+              </div>
+
+              <div class="status" id="adminStatus"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- DASHBOARD VIEW (hidden until authenticated) -->
+        <div id="adminDashView" hidden>
+          <div class="dashTop">
+            <div class="dashWelcome">
+              <div class="dashTitle">Admin Dashboard</div>
+              <div class="dashSub" id="adminWho"></div>
+            </div>
+            <div class="dashActions">
+              <button type="button" class="chipBtn ghost" id="dashLogoutBtn">Log out</button>
+            </div>
+          </div>
+
+          <!-- FILES -->
+          <div class="dashCard">
+            <div class="dashCardHead">
+              <div>
+                <div class="dashCardTitle">Customer Onboarding Forms</div>
+                <div class="dashCardSub">Search by file name and manage stored PDFs in Google Drive.</div>
+              </div>
+            </div>
+
+            <div class="filtersRow">
+              <input class="field" id="fileQuery" type="text" placeholder="Search by file name..." />
+              <button type="button" class="btn" id="fileSearchBtn">Search</button>
+
+              <button type="button" class="btn ghost" id="toggleDateBtn" aria-expanded="false">
+                Search by date too?
+              </button>
+            </div>
+
+            <div class="filtersRow" id="dateRow" hidden>
+              <input class="field" id="fromDate" type="date" />
+              <input class="field" id="toDate" type="date" />
+              <button type="button" class="btn" id="applyDateBtn">Apply date filter</button>
+              <button type="button" class="btn ghost" id="clearDateBtn">Clear dates</button>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Created</th>
+                    <th style="width: 180px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="filesTbody">
+                  <tr><td colspan="3" class="muted">No results yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="status" id="filesStatus"></div>
+          </div>
+
+          <!-- WELCOME EMAIL -->
+          <div class="dashCard">
+            <div class="dashCardHead">
+              <div>
+                <div class="dashCardTitle">Send Welcome Email</div>
+                <div class="dashCardSub">Opens a ready-to-send email template on your device.</div>
+              </div>
+            </div>
+
+            <form id="welcomeForm" class="welcomeForm" novalidate>
+              <input class="field" id="welCompany" name="companyName" type="text" placeholder="Customer / Company Name *" required />
+              <input class="field" id="welContact" name="contactName" type="text" placeholder="Customer Contact Name (optional)" />
+              <input class="field" id="welEmail" name="customerEmail" type="email" placeholder="Customer Email Address *" required />
+
+              <div class="welcomeActions">
+                <button type="submit" class="btn primary">Open Email Draft</button>
+              </div>
+
+              <div class="status" id="welcomeStatus"></div>
+            </form>
+          </div>
+
+          <!-- LOGS (only visible if canViewLogs) -->
+          <div class="dashCard" id="logsCard" hidden>
+            <div class="dashCardHead">
+              <div>
+                <div class="dashCardTitle">Activity Logs</div>
+                <div class="dashCardSub">Only visible to approved admins.</div>
+              </div>
+              <div class="dashCardRight">
+                <button type="button" class="btn" id="refreshLogsBtn">Refresh</button>
+              </div>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Summary</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTbody">
+                  <tr><td colspan="4" class="muted">No logs loaded.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="status" id="logsStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ PERSON DETAILS MODAL -->
   <div class="modalBackdrop" id="personModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="personTitle">
       <div class="modalHeader">
@@ -464,57 +624,17 @@
     </div>
   </div>
 
-  <!-- ✅ CANCELLATION POLICY MODAL (for the button in the form) -->
-  <div class="modalBackdrop" id="policyModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="policyTitle">
+  <!-- ✅ LOG DETAILS MODAL -->
+  <div class="modalBackdrop" id="logModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logTitle">
       <div class="modalHeader">
-        <div class="title" id="policyTitle">Cancellation Policy</div>
-        <button class="closeBtn" type="button" id="closePolicyBtn">Close</button>
+        <div class="title" id="logTitle">Log Details</div>
+        <button class="closeBtn" type="button" id="closeLogBtn">Close</button>
       </div>
-
-      <div class="modalBody">
-        <div class="doc" style="margin-top:0;">
-          <!-- We reuse the exact same policy text -->
-          <p style="margin-top:0;">
-            At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
-            To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
-          </p>
-
-          <h3 style="margin-top:14px;">Cancellation Notice</h3>
-          <ul>
-            <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
-            <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
-            <li>Business days are defined as Monday to Friday, excluding UK bank holidays. Weekends and bank holidays are not counted as working days for notice periods.</li>
-          </ul>
-
-          <h3 style="margin-top:14px;">If you wish to cancel an appointment:</h3>
-          <ul>
-            <li>Call us on <b>01283 533330</b>, or</li>
-            <li>Email us at <a href="mailto:support@smartfits.co.uk" class="plainLink">support@smartfits.co.uk</a></li>
-          </ul>
-          <p>We recommend email as it provides a date and time stamp for proof of cancellation.</p>
-
-          <h3 style="margin-top:14px;">Incomplete Jobs Due to Client-Side Issues</h3>
-          <p>
-            If our engineer attends site and is unable to complete the scheduled work due to client-side issues
-            (e.g., unavailable vehicles, missing equipment, denied access), it is treated as a late cancellation, and:
-          </p>
-          <ul>
-            <li>The client will be charged 100% of the originally quoted full price.</li>
-            <li>Return visits will charge only for additional time/work to complete remaining tasks.</li>
-          </ul>
-
-          <h3 style="margin-top:14px;">Billing Responsibility</h3>
-          <p>
-            This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
-            Fees/communications will be directed to the established account holder.
-          </p>
-        </div>
-      </div>
+      <div class="modalBody" id="logBody"></div>
     </div>
   </div>
 
-  <!-- ✅ Your main script -->
-  <script src="./assets/app.js"></script>
+  <script src="./assets/app.js" defer></script>
 </body>
 </html>
