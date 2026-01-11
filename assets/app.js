@@ -1,639 +1,579 @@
-/****************************************************
- * CONFIG
- ****************************************************/
+// assets/app.js
 
-// ✅ Your Google Apps Script Web App URL (the /exec endpoint)
-// const GAS_WEB_APP_URL = window.GAS_WEB_APP_URL || ""; 
-// If you prefer hard-code:
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
+// ---------------------------
+// CONFIG (adjust if your API paths differ)
+// ---------------------------
+const API_LOGIN = "/api/login";
+const API_LOGOUT = "/api/logout";
+const API_LIST_FILES = "/api/files/list";
+const API_DELETE_FILE = "/api/files/delete";
+const API_LOGS = "/api/logs/list";
 
-/****************************************************
- * PUBLIC FORM
- ****************************************************/
-const form = document.getElementById('deploymentForm');
-const statusEl = document.getElementById('status');
-const submitBtn = document.getElementById('submitBtn');
-const clearBtn = document.getElementById('clearBtn');
-
-const acceptPolicy = document.getElementById('acceptPolicy');
-const acceptPolicyValue = document.getElementById('acceptPolicyValue');
-
-const policyModal = document.getElementById('policyModal');
-const openPolicyBtn = document.getElementById('openPolicyBtn');
-const closePolicyBtn = document.getElementById('closePolicyBtn');
-
-function setStatus(msg, type){
-  if(!statusEl) return;
-  statusEl.textContent = msg || '';
-  statusEl.classList.remove('ok','err');
-  if(type) statusEl.classList.add(type);
-}
-
-function openModal(backdropEl, focusEl){
-  backdropEl?.classList.add('open');
-  backdropEl?.setAttribute('aria-hidden','false');
-  focusEl?.focus();
-}
-function closeModal(backdropEl, focusBackEl){
-  backdropEl?.classList.remove('open');
-  backdropEl?.setAttribute('aria-hidden','true');
-  focusBackEl?.focus();
-}
-
-/* Policy modal */
-openPolicyBtn?.addEventListener('click', () => openModal(policyModal, closePolicyBtn));
-closePolicyBtn?.addEventListener('click', () => closeModal(policyModal, openPolicyBtn));
-policyModal?.addEventListener('click', (e) => { if(e.target === policyModal) closeModal(policyModal, openPolicyBtn); });
-
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape'){
-    if(policyModal?.classList.contains('open')) closeModal(policyModal, openPolicyBtn);
-    if(adminModal?.classList.contains('open')) closeModal(adminModal, openAdminBtn);
-    if(personModal?.classList.contains('open')) closeModal(personModal, null);
-    if(logModal?.classList.contains('open')) closeModal(logModal, null);
-  }
-});
-
-function validateRequired(){
-  const requiredIds = [
-    'fullCompanyName','vatNumber','companyRegNumber','invoiceAddress',
-    'accountsContactName','accountsContactNumber','accountsEmail',
-    'mainContactName','mainContactNumber','mainContactEmail'
-  ];
-
-  for(const id of requiredIds){
-    const el = document.getElementById(id);
-    if(!el || !String(el.value || '').trim()){
-      el?.focus();
-      return false;
-    }
-  }
-
-  if(!acceptPolicy?.checked){
-    acceptPolicy?.focus();
-    return false;
-  }
-  return true;
-}
-
-acceptPolicy?.addEventListener('change', () => {
-  acceptPolicyValue.value = acceptPolicy.checked ? 'Yes' : 'No';
-});
-
-clearBtn?.addEventListener('click', () => {
-  form.reset();
-  acceptPolicyValue.value = 'No';
-  setStatus('');
-});
-
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  acceptPolicyValue.value = acceptPolicy.checked ? 'Yes' : 'No';
-
-  if(!validateRequired()){
-    setStatus('Please complete all required fields (marked with *), and accept the Cancellation Policy.', 'err');
-    return;
-  }
-
-  setStatus('Submitting…');
-  submitBtn.disabled = true;
-
-  const data = Object.fromEntries(new FormData(form).entries());
-  data.action = "submitForm";
-
-  try{
-    if(!GAS_WEB_APP_URL) throw new Error("GAS_WEB_APP_URL is not set.");
-
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const out = await res.json().catch(() => ({}));
-    if(!res.ok || !out.ok) throw new Error(out.error || `Request failed (${res.status})`);
-
-    // ✅ new success message
-    setStatus('Submitted successfully. Thank you for the business.', 'ok');
-    submitBtn.disabled = false;
-    form.reset();
-    acceptPolicyValue.value = 'No';
-
-  }catch(err){
-    setStatus('Error: ' + (err?.message || err), 'err');
-    submitBtn.disabled = false;
-  }
-});
-
-/****************************************************
- * TEAM MEMBER MODAL (click on person)
- ****************************************************/
-const personModal = document.getElementById('personModal');
-const closePersonBtn = document.getElementById('closePersonBtn');
-const personBody = document.getElementById('personBody');
-
-/**
- * Only Tara + Charlie have phone numbers.
- * Everyone else: firstname@smartfits.co.uk
- */
-const PEOPLE = {
-  tara:   { name:"Tara Hassall",   role:"Managing Director", email:"tara@smartfits.co.uk", phone:"07894 880559", img:"./images/tara_hassall.png" },
-  charlie:{ name:"Charlie Inger", role:"Sales & Business Development Manager", email:"charlie@smartfits.co.uk", phone:"07385 099620", img:"./images/charlie_inger.png" },
-
-  emma:   { name:"Emma Sumner",   role:"Customer Success Team Leader", email:"emma@smartfits.co.uk", img:"./images/emma_sumner.png" },
-  kelly:  { name:"Kelly Mullen",  role:"Customer Success Team Member", email:"kelly@smartfits.co.uk", img:"./images/kelly_mullen.png" },
-  aleks:  { name:"Aleks Fossick", role:"Customer Success Team Member", email:"aleks@smartfits.co.uk", img:"./images/aleks_fossick.png" },
-
-  roz:    { name:"Roz Hardwick",  role:"Operations Lead", email:"roz@smartfits.co.uk", img:"./images/roz_hardwick.png" },
-  ellie:  { name:"Ellie Topliss", role:"Project Coordinator", email:"ellie@smartfits.co.uk", img:"./images/ellie_topliss.png" },
-  sophie: { name:"Sophie Turner", role:"Project Coordinator", email:"sophie@smartfits.co.uk", img:"./images/sophie_turner.png" },
-  amanda: { name:"Amanda Clarke", role:"Field Operations Team Member", email:"amanda@smartfits.co.uk", img:"./images/amanda_clarke.png" },
-  rosie:  { name:"Rosie Smart",   role:"Field Operations Team Member", email:"rosie@smartfits.co.uk", img:"./images/rosie_smart.png" },
-  bridie: { name:"Bridie Southam",role:"Field Operations Team Member", email:"bridie@smartfits.co.uk", img:"./images/bridie_southam.png" },
-  kasia:  { name:"Kasia Dzielak", role:"Field Operations Team Member", email:"kasia@smartfits.co.uk", img:"./images/kasia_dzielak.png" }
+// ---------------------------
+// TEAM DATA (emails + phone numbers per your rules)
+// ---------------------------
+const TEAM = {
+  tara: {
+    fullName: "Tara Hassall",
+    role: "Managing Director",
+    email: "tara@smartfits.co.uk",
+    phone: "07894 880559",
+    image: "./images/tara_hassall.png",
+  },
+  charlie: {
+    fullName: "Charlie Inger",
+    role: "Sales & Business Development Manager",
+    email: "charlie@smartfits.co.uk",
+    phone: "07385 099620",
+    image: "./images/charlie_inger.png",
+  },
+  emma: {
+    fullName: "Emma Sumner",
+    role: "Customer Success Team Leader",
+    email: "emma@smartfits.co.uk",
+    image: "./images/emma_sumner.png",
+  },
+  kelly: {
+    fullName: "Kelly Mullen",
+    role: "Customer Success Team Member",
+    email: "kelly@smartfits.co.uk",
+    image: "./images/kelly_mullen.png",
+  },
+  aleks: {
+    fullName: "Aleks Fossick",
+    role: "Customer Success Team Member",
+    email: "aleks@smartfits.co.uk",
+    image: "./images/aleks_fossick.png",
+  },
+  roz: {
+    fullName: "Roz Hardwick",
+    role: "Operations Lead",
+    email: "roz@smartfits.co.uk",
+    image: "./images/roz_hardwick.png",
+  },
+  ellie: {
+    fullName: "Ellie Topliss",
+    role: "Project Coordinator",
+    email: "ellie@smartfits.co.uk",
+    image: "./images/ellie_topliss.png",
+  },
+  sophie: {
+    fullName: "Sophie Turner",
+    role: "Project Coordinator",
+    email: "sophie@smartfits.co.uk",
+    image: "./images/sophie_turner.png",
+  },
+  amanda: {
+    fullName: "Amanda Clarke",
+    role: "Field Operations Team Member",
+    email: "amanda@smartfits.co.uk",
+    image: "./images/amanda_clarke.png",
+  },
+  rosie: {
+    fullName: "Rosie Smart",
+    role: "Field Operations Team Member",
+    email: "rosie@smartfits.co.uk",
+    image: "./images/rosie_smart.png",
+  },
+  bridie: {
+    fullName: "Bridie Southam",
+    role: "Field Operations Team Member",
+    email: "bridie@smartfits.co.uk",
+    image: "./images/bridie_southam.png",
+  },
+  kasia: {
+    fullName: "Kasia Dzielak",
+    role: "Field Operations Team Member",
+    email: "kasia@smartfits.co.uk",
+    image: "./images/kasia_dzielak.png",
+  },
 };
 
-function renderPersonModal(p){
-  const safePhone = p.phone ? `
-    <div class="row">Phone: <a href="tel:${p.phone.replace(/\s+/g,'')}">${p.phone}</a></div>
-  ` : '';
+// ---------------------------
+// HELPERS
+// ---------------------------
+function $(id) { return document.getElementById(id); }
 
-  personBody.innerHTML = `
-    <div class="personCard">
-      <img src="${p.img}" alt="${p.name}">
+function openModal(backdropId) {
+  const el = $(backdropId);
+  if (!el) return;
+  el.classList.add("open");
+  el.setAttribute("aria-hidden", "false");
+}
+
+function closeModal(backdropId) {
+  const el = $(backdropId);
+  if (!el) return;
+  el.classList.remove("open");
+  el.setAttribute("aria-hidden", "true");
+}
+
+function setText(id, text) {
+  const el = $(id);
+  if (el) el.textContent = text;
+}
+
+function setHTML(id, html) {
+  const el = $(id);
+  if (el) el.innerHTML = html;
+}
+
+function formatUkDateTime(iso) {
+  try {
+    const d = new Date(iso);
+    // UK style date + time
+    return d.toLocaleString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/London",
+      timeZoneName: "short",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+async function apiPost(url, payload) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload ?? {}),
+  });
+  let data = null;
+  const text = await resp.text();
+  try { data = text ? JSON.parse(text) : null; } catch { data = { ok: false, raw: text }; }
+  if (!resp.ok) {
+    return { ok: false, status: resp.status, data };
+  }
+  return data ?? { ok: true };
+}
+
+// ---------------------------
+// ADMIN STATE
+// ---------------------------
+const state = {
+  admin: null, // { email, name, canViewLogs }
+};
+
+function setAdminUIAuthed(admin) {
+  state.admin = admin;
+
+  // Switch views
+  $("adminSigninOnly")?.classList.add("hide");
+  $("adminAuthed")?.classList.remove("hide");
+
+  const who = admin?.name ? `${admin.name} (${admin.email})` : admin?.email || "Signed in";
+  setText("adminSignedInText", `Signed in as ${who}`);
+
+  // Logs visibility by permission
+  const canViewLogs = !!admin?.canViewLogs;
+  const logsSection = $("logsSection");
+  if (logsSection) {
+    if (canViewLogs) logsSection.classList.remove("hide");
+    else logsSection.classList.add("hide");
+  }
+}
+
+function setAdminUISignedOut() {
+  state.admin = null;
+
+  $("adminSigninOnly")?.classList.remove("hide");
+  $("adminAuthed")?.classList.add("hide");
+
+  setText("adminStatus", "");
+  setText("adminSignedInText", "");
+  setText("logsStatus", "");
+  setText("welcomeStatus", "");
+
+  // Clear tables
+  setHTML("filesTableBody", `<div class="muted">Search to view files.</div>`);
+  setHTML("logsList", `<div class="muted">Load logs to view activity.</div>`);
+}
+
+// ---------------------------
+// PERSON MODAL RENDER
+// ---------------------------
+function renderPersonModal(personKey) {
+  const p = TEAM[personKey];
+  if (!p) return;
+
+  setText("personTitle", "Team Member");
+
+  const phoneLine = p.phone
+    ? `<div class="contactLine"><div class="contactLabel">Phone:</div><div class="contactValue">${escapeHtml(p.phone)}</div></div>`
+    : "";
+
+  const html = `
+    <div class="personModalGrid">
       <div>
-        <div class="pName">${p.name}</div>
-        <div class="pRole">${p.role || ''}</div>
+        <img class="personHeroImg" src="${p.image}" alt="${escapeHtml(p.fullName)}" />
+      </div>
+
+      <div>
+        <h3 class="personModalName">${escapeHtml(p.fullName)}</h3>
+        <div class="personModalRole">${escapeHtml(p.role)}</div>
+
+        <div class="sectionTitle">Contact details</div>
+        <div class="contactCard">
+          <div class="contactLine">
+            <div class="contactLabel">Email:</div>
+            <div class="contactValue"><a href="mailto:${escapeAttr(p.email)}">${escapeHtml(p.email)}</a></div>
+          </div>
+          ${phoneLine}
+        </div>
+
+        <div class="supportMini">
+          <p class="supportMiniTitle">Want general support?</p>
+          <div class="contactLine" style="margin-top:8px;">
+            <div class="contactLabel">Phone:</div>
+            <div class="contactValue">01283 533330</div>
+          </div>
+          <div class="contactLine">
+            <div class="contactLabel">Email:</div>
+            <div class="contactValue"><a href="mailto:support@smartfits.co.uk">support@smartfits.co.uk</a></div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="personDetails">
-      <div class="label">Contact details</div>
-      <div class="row">Email: <a href="mailto:${p.email}">${p.email}</a></div>
-      ${safePhone}
-    </div>
-
-    <div class="miniSupport">
-      <div class="title">Want general support?</div>
-      <div class="row">Support Phone Number: <a href="tel:01283533330">01283 533330</a></div>
-      <div class="row">Support Email Address: <a href="mailto:support@smartfits.co.uk">support@smartfits.co.uk</a></div>
-    </div>
   `;
+
+  setHTML("personBody", html);
+  openModal("personModal");
 }
 
-document.querySelectorAll('.personBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const key = btn.getAttribute('data-person');
-    const p = PEOPLE[key];
-    if(!p) return;
-    renderPersonModal(p);
-    openModal(personModal, closePersonBtn);
-  });
-});
-
-closePersonBtn?.addEventListener('click', () => closeModal(personModal, null));
-personModal?.addEventListener('click', (e) => { if(e.target === personModal) closeModal(personModal, null); });
-
-/****************************************************
- * ADMIN MODAL + DASHBOARD (HIDE UNTIL LOGIN)
- ****************************************************/
-const adminModal = document.getElementById('adminModal');
-const openAdminBtn = document.getElementById('openAdminBtn');
-const closeAdminBtn = document.getElementById('closeAdminBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const dashLogoutBtn = document.getElementById('dashLogoutBtn');
-
-const adminLoginForm = document.getElementById('adminLoginForm');
-const adminEmail = document.getElementById('adminEmail');
-const adminPassword = document.getElementById('adminPassword');
-const adminStatus = document.getElementById('adminStatus');
-const adminClearBtn = document.getElementById('adminClearBtn');
-
-const adminSignInView = document.getElementById('adminSignInView');
-const adminDashView = document.getElementById('adminDashView');
-const adminWho = document.getElementById('adminWho');
-
-const logsCard = document.getElementById('logsCard');
-
-/* Files UI */
-const fileQuery = document.getElementById('fileQuery');
-const fileSearchBtn = document.getElementById('fileSearchBtn');
-const filesTbody = document.getElementById('filesTbody');
-const filesStatus = document.getElementById('filesStatus');
-const toggleDateBtn = document.getElementById('toggleDateBtn');
-const dateRow = document.getElementById('dateRow');
-const fromDate = document.getElementById('fromDate');
-const toDate = document.getElementById('toDate');
-const applyDateBtn = document.getElementById('applyDateBtn');
-const clearDateBtn = document.getElementById('clearDateBtn');
-
-/* Logs UI */
-const refreshLogsBtn = document.getElementById('refreshLogsBtn');
-const logsTbody = document.getElementById('logsTbody');
-const logsStatus = document.getElementById('logsStatus');
-
-/* Log details modal */
-const logModal = document.getElementById('logModal');
-const closeLogBtn = document.getElementById('closeLogBtn');
-const logBody = document.getElementById('logBody');
-
-function setAdminStatus(msg, type){
-  if(!adminStatus) return;
-  adminStatus.textContent = msg || '';
-  adminStatus.classList.remove('ok','err');
-  if(type) adminStatus.classList.add(type);
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
+function escapeAttr(str){ return escapeHtml(str).replaceAll('"', "&quot;"); }
 
-function setFilesStatus(msg, type){
-  if(!filesStatus) return;
-  filesStatus.textContent = msg || '';
-  filesStatus.classList.remove('ok','err');
-  if(type) filesStatus.classList.add(type);
-}
+// ---------------------------
+// ADMIN FEATURES (files, logs, welcome EML)
+// ---------------------------
+function renderFiles(files) {
+  const wrap = $("filesTableBody");
+  if (!wrap) return;
 
-function setLogsStatus(msg, type){
-  if(!logsStatus) return;
-  logsStatus.textContent = msg || '';
-  logsStatus.classList.remove('ok','err');
-  if(type) logsStatus.classList.add(type);
-}
-
-function getToken(){ return localStorage.getItem('sf_admin_token') || ''; }
-function setToken(t){ localStorage.setItem('sf_admin_token', t); }
-function clearToken(){ localStorage.removeItem('sf_admin_token'); }
-
-function setAdminUiState({ authed, admin }){
-  if(authed){
-    adminSignInView.hidden = true;
-    adminDashView.hidden = false;
-
-    openAdminBtn.hidden = true;
-    logoutBtn.hidden = false;
-
-    dashLogoutBtn?.removeAttribute('hidden');
-    adminWho.textContent = `${admin?.name || ''} • ${admin?.email || ''}`;
-
-    // ✅ show logs only if allowed
-    if(admin?.canViewLogs){
-      logsCard.hidden = false;
-    }else{
-      logsCard.hidden = true;
-    }
-  }else{
-    adminSignInView.hidden = false;
-    adminDashView.hidden = true;
-
-    openAdminBtn.hidden = false;
-    logoutBtn.hidden = true;
-
-    logsCard.hidden = true;
+  if (!files || files.length === 0) {
+    wrap.innerHTML = `<div class="muted">No files found.</div>`;
+    return;
   }
-}
 
-async function apiCall(payload){
-  if(!GAS_WEB_APP_URL) throw new Error("GAS_WEB_APP_URL is not set.");
-  const res = await fetch(GAS_WEB_APP_URL, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify(payload)
-  });
-  const out = await res.json().catch(() => ({}));
-  if(!res.ok || !out.ok) throw new Error(out.error || `Request failed (${res.status})`);
-  return out;
-}
+  wrap.innerHTML = files.map(f => {
+    const created = f.created ? formatUkDateTime(f.created) : "";
+    const name = f.fileName || f.name || "Unnamed file";
+    const id = f.fileId || f.id || "";
 
-/* Open admin modal */
-openAdminBtn?.addEventListener('click', () => {
-  // Always show sign-in first when opening
-  setAdminUiState({ authed:false });
-  adminLoginForm?.reset();
-  setAdminStatus('');
-  openModal(adminModal, closeAdminBtn);
-});
+    return `
+      <div class="fileRow">
+        <div title="${escapeAttr(name)}">${escapeHtml(name)}</div>
+        <div class="muted">${escapeHtml(created)}</div>
+        <div class="fileActions">
+          <button class="smallBtn" type="button" data-action="view" data-id="${escapeAttr(id)}">View</button>
+          <button class="smallBtn" type="button" data-action="delete" data-id="${escapeAttr(id)}">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 
-closeAdminBtn?.addEventListener('click', () => closeModal(adminModal, openAdminBtn));
-adminModal?.addEventListener('click', (e) => { if(e.target === adminModal) closeModal(adminModal, openAdminBtn); });
+  // Actions
+  wrap.querySelectorAll("button[data-action]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const action = btn.getAttribute("data-action");
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
 
-adminClearBtn?.addEventListener('click', () => {
-  adminLoginForm?.reset();
-  setAdminStatus('');
-});
+      if (action === "view") {
+        // If your API returns a viewUrl, you can use that instead.
+        // For now we call an endpoint that returns a signed/download URL.
+        const res = await apiPost("/api/files/view", { id });
+        if (res?.ok && res.url) window.open(res.url, "_blank");
+        else alert("Unable to open file. Check API /api/files/view.");
+      }
 
-/* Login */
-adminLoginForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  setAdminStatus('Signing in…');
-  const email = String(adminEmail?.value || '').trim();
-  const password = String(adminPassword?.value || '');
-
-  try{
-    const out = await apiCall({ action:'adminLogin', email, password });
-    setToken(out.token);
-
-    setAdminStatus('Signed in.', 'ok');
-    setAdminUiState({ authed:true, admin: out.admin });
-
-    // load initial files (and logs if allowed)
-    await loadFiles();
-    if(out.admin?.canViewLogs) await loadLogs();
-
-  }catch(err){
-    setAdminStatus('Error: ' + (err?.message || err), 'err');
-  }
-});
-
-/* Logout buttons */
-function doLogout(){
-  clearToken();
-  setAdminUiState({ authed:false });
-  closeModal(adminModal, openAdminBtn);
-}
-logoutBtn?.addEventListener('click', doLogout);
-dashLogoutBtn?.addEventListener('click', doLogout);
-
-/* Optional: if token exists, keep top logout visible? (No — user asked to see nothing until clicked.)
-   So we only check token after admin modal opens and user signs in. */
-
-/****************************************************
- * FILES: search by name, optional date toggle
- ****************************************************/
-toggleDateBtn?.addEventListener('click', () => {
-  const willShow = !!dateRow?.hidden;
-  dateRow.hidden = !willShow;
-  toggleDateBtn.setAttribute('aria-expanded', String(willShow));
-});
-
-applyDateBtn?.addEventListener('click', () => loadFiles());
-clearDateBtn?.addEventListener('click', () => {
-  fromDate.value = '';
-  toDate.value = '';
-  loadFiles();
-});
-
-fileSearchBtn?.addEventListener('click', () => loadFiles());
-
-async function loadFiles(){
-  const token = getToken();
-  if(!token) return;
-
-  setFilesStatus('Loading…');
-  try{
-    const query = String(fileQuery?.value || '').trim();
-
-    // Only send from/to if the date section is opened and filled.
-    const useDates = !dateRow.hidden && (fromDate.value || toDate.value);
-
-    const out = await apiCall({
-      action:'listFiles',
-      token,
-      query,
-      fromDate: useDates ? fromDate.value : '',
-      toDate: useDates ? toDate.value : ''
+      if (action === "delete") {
+        const ok = confirm("Delete this file?");
+        if (!ok) return;
+        const res = await apiPost(API_DELETE_FILE, { id });
+        if (!res?.ok) {
+          alert("Delete failed.");
+          return;
+        }
+        // Refresh list
+        $("searchFilesBtn")?.click();
+      }
     });
+  });
+}
 
-    const files = out.files || [];
-    if(!files.length){
-      filesTbody.innerHTML = `<tr><td colspan="3" class="muted">No files found.</td></tr>`;
-      setFilesStatus('');
+function renderLogs(logs) {
+  const list = $("logsList");
+  if (!list) return;
+
+  if (!logs || logs.length === 0) {
+    list.innerHTML = `<div class="muted">No logs found for that filter.</div>`;
+    return;
+  }
+
+  // Plain English titles
+  function actionLabel(a) {
+    if (a === "LOGIN") return "Admin signed in";
+    if (a === "DELETE_FILE") return "Deleted file";
+    if (a === "SUBMIT_FORM") return "Form submitted";
+    return "Activity";
+  }
+
+  list.innerHTML = logs.map((l, idx) => {
+    const ts = l.timestamp || l.created || l.time || "";
+    const when = ts ? formatUkDateTime(ts) : "";
+    const email = l.adminEmail || l.email || "";
+    const action = l.action || l.type || "";
+
+    const details = l.details || {};
+    const fileName = details.fileName || l.fileName || "";
+    const message = details.message || "";
+
+    return `
+      <div class="logItem" data-log="${idx}">
+        <div class="logTop">
+          <div>
+            <div class="logTitle">${escapeHtml(actionLabel(action))}</div>
+            <div class="logMeta">${escapeHtml(when)}</div>
+          </div>
+          <div class="logMeta">${escapeHtml(email)}</div>
+        </div>
+
+        <div class="logDetails">
+          <div class="kv">
+            <div class="k">User</div><div class="v">${escapeHtml(email)}</div>
+            <div class="k">Action</div><div class="v">${escapeHtml(actionLabel(action))}</div>
+            ${fileName ? `<div class="k">File Name</div><div class="v">${escapeHtml(fileName)}</div>` : ""}
+            ${message ? `<div class="k">Details</div><div class="v">${escapeHtml(message)}</div>` : ""}
+            ${ts ? `<div class="k">Timestamp</div><div class="v">${escapeHtml(when)}</div>` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  list.querySelectorAll(".logItem").forEach(item => {
+    item.addEventListener("click", () => item.classList.toggle("open"));
+  });
+}
+
+function downloadEml(filename, subject, bodyText, toEmail) {
+  // Simple EML generator (opens in Outlook/Mail when downloaded)
+  // Note: formatting stays basic here; can be upgraded to HTML MIME if you want.
+  const eml =
+`To: ${toEmail}
+Subject: ${subject}
+X-Unsent: 1
+Content-Type: text/plain; charset="utf-8"
+
+${bodyText}
+`;
+
+  const blob = new Blob([eml], { type: "message/rfc822" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename.endsWith(".eml") ? filename : `${filename}.eml`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// ---------------------------
+// INIT
+// ---------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  // Person click handlers
+  document.querySelectorAll(".personBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-person");
+      if (key) renderPersonModal(key);
+    });
+  });
+
+  // Person modal close
+  $("closePersonBtn")?.addEventListener("click", () => closeModal("personModal"));
+  $("personModal")?.addEventListener("click", (e) => {
+    if (e.target === $("personModal")) closeModal("personModal");
+  });
+
+  // Admin modal open/close
+  $("openAdminBtn")?.addEventListener("click", () => openModal("adminModal"));
+  $("closeAdminBtn")?.addEventListener("click", () => closeModal("adminModal"));
+  $("adminModal")?.addEventListener("click", (e) => {
+    if (e.target === $("adminModal")) closeModal("adminModal");
+  });
+
+  // Start signed out UI
+  setAdminUISignedOut();
+
+  // Toggle date search
+  $("toggleDateSearchBtn")?.addEventListener("click", () => {
+    $("dateSearchRow")?.classList.toggle("hide");
+  });
+
+  // Admin clear
+  $("adminClearBtn")?.addEventListener("click", () => {
+    if ($("adminEmail")) $("adminEmail").value = "";
+    if ($("adminPassword")) $("adminPassword").value = "";
+    setText("adminStatus", "");
+  });
+
+  // Admin login
+  $("adminLoginForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setText("adminStatus", "Signing in...");
+
+    const email = $("adminEmail")?.value?.trim() || "";
+    const password = $("adminPassword")?.value || "";
+    if (!email || !password) {
+      setText("adminStatus", "Please enter your email and password.");
       return;
     }
 
-    filesTbody.innerHTML = files.map(f => {
-      return `
-        <tr>
-          <td>${escapeHtml(f.name)}</td>
-          <td>${escapeHtml(f.created)}</td>
-          <td>
-            <div class="actionsInline">
-              <button type="button" class="actionBtn" data-act="view" data-url="${escapeHtmlAttr(f.url)}">View</button>
-              <button type="button" class="actionBtn danger" data-act="delete" data-id="${escapeHtmlAttr(f.id)}" data-name="${escapeHtmlAttr(f.name)}">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
+    const res = await apiPost(API_LOGIN, { email, password });
 
-    setFilesStatus('', 'ok');
-
-  }catch(err){
-    setFilesStatus('Error: ' + (err?.message || err), 'err');
-  }
-}
-
-filesTbody?.addEventListener('click', async (e) => {
-  const btn = e.target?.closest?.('button');
-  if(!btn) return;
-  const act = btn.getAttribute('data-act');
-
-  if(act === 'view'){
-    const url = btn.getAttribute('data-url');
-    if(url) window.open(url, '_blank', 'noopener');
-    return;
-  }
-
-  if(act === 'delete'){
-    const id = btn.getAttribute('data-id');
-    const name = btn.getAttribute('data-name');
-
-    const ok = confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`);
-    if(!ok) return;
-
-    try{
-      setFilesStatus('Deleting…');
-      await apiCall({ action:'deleteFile', token: getToken(), fileId: id });
-      setFilesStatus('Deleted.', 'ok');
-      await loadFiles();
-      // refresh logs if allowed (won’t show for Charlie)
-      if(!logsCard.hidden) await loadLogs();
-    }catch(err){
-      setFilesStatus('Error: ' + (err?.message || err), 'err');
-    }
-  }
-});
-
-/****************************************************
- * LOGS: plain English summary + click for details
- ****************************************************/
-function prettyAction(type){
-  if(type === 'LOGIN') return 'Signed in';
-  if(type === 'DELETE_FILE') return 'Deleted file';
-  if(type === 'SEND_WELCOME_EMAIL') return 'Opened welcome email draft';
-  return type || 'Action';
-}
-
-function formatUk(ts){
-  // input might already be formatted (yyyy-mm-dd hh:mm:ss). Keep safe.
-  // If it parses, display as UK.
-  const d = new Date(ts);
-  if(!isNaN(d.getTime())){
-    return d.toLocaleString('en-GB', { dateStyle:'long', timeStyle:'short', timeZone:'Europe/London' });
-  }
-  return ts;
-}
-
-async function loadLogs(){
-  const token = getToken();
-  if(!token || logsCard.hidden) return;
-
-  setLogsStatus('Loading…');
-  try{
-    const out = await apiCall({ action:'listLogs', token });
-    const logs = out.logs || [];
-
-    if(!logs.length){
-      logsTbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
-      setLogsStatus('');
+    // Expected response:
+    // { ok:true, user:{ email, name, canViewLogs:true/false } }
+    if (!res || res.ok !== true) {
+      setText("adminStatus", "Login failed. Please check your details.");
       return;
     }
 
-    logsTbody.innerHTML = logs.map((l, idx) => {
-      const action = prettyAction(l.actionType);
-      let summary = action;
+    const user = res.user || res.admin || { email };
+    setText("adminStatus", "");
+    setAdminUIAuthed({
+      email: user.email || email,
+      name: user.name || user.fullName || "",
+      canViewLogs: !!user.canViewLogs,
+    });
+  });
 
-      // Build a short summary
-      try{
-        const detailsObj = l.details ? JSON.parse(l.details) : null;
-        if(l.actionType === 'DELETE_FILE' && detailsObj?.fileName){
-          summary = `Deleted file: ${detailsObj.fileName}`;
-        }
-        if(l.actionType === 'SEND_WELCOME_EMAIL' && detailsObj?.customerEmail){
-          summary = `Welcome email draft: ${detailsObj.customerEmail}`;
-        }
-      }catch{}
+  // Logout
+  $("logoutBtn")?.addEventListener("click", async () => {
+    try { await apiPost(API_LOGOUT, {}); } catch {}
+    setAdminUISignedOut();
+  });
 
-      return `
-        <tr>
-          <td>${escapeHtml(formatUk(l.timestamp))}</td>
-          <td>${escapeHtml(l.adminEmail || '')}</td>
-          <td>${escapeHtml(action)}</td>
-          <td>
-            <button type="button" class="actionBtn" data-act="log" data-log='${escapeHtmlAttr(JSON.stringify(l))}'>
-              View details
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+  // Search files
+  $("searchFilesBtn")?.addEventListener("click", async () => {
+    setHTML("filesTableBody", `<div class="muted">Searching...</div>`);
 
-    setLogsStatus('');
+    const name = $("fileSearchName")?.value?.trim() || "";
+    const dateEnabled = !$("dateSearchRow")?.classList.contains("hide");
+    const from = dateEnabled ? ($("fileFromDate")?.value || "") : "";
+    const to = dateEnabled ? ($("fileToDate")?.value || "") : "";
 
-  }catch(err){
-    setLogsStatus('Error: ' + (err?.message || err), 'err');
-  }
-}
+    const res = await apiPost(API_LIST_FILES, { name, from, to });
+    if (!res || res.ok !== true) {
+      setHTML("filesTableBody", `<div class="muted">Search failed.</div>`);
+      return;
+    }
 
-refreshLogsBtn?.addEventListener('click', () => loadLogs());
+    renderFiles(res.files || []);
+  });
 
-logsTbody?.addEventListener('click', (e) => {
-  const btn = e.target?.closest?.('button');
-  if(!btn) return;
-  if(btn.getAttribute('data-act') !== 'log') return;
+  // Download EML
+  $("downloadEmlBtn")?.addEventListener("click", () => {
+    const company = $("welcomeCompany")?.value?.trim();
+    const contact = $("welcomeContact")?.value?.trim();
+    const email = $("welcomeEmail")?.value?.trim();
 
-  const raw = btn.getAttribute('data-log');
-  if(!raw) return;
+    if (!company || !email) {
+      setText("welcomeStatus", "Company name and customer email are required.");
+      return;
+    }
 
-  let l;
-  try{ l = JSON.parse(raw); }catch{ return; }
+    const subject = `Welcome to SmartFits – Customer Onboarding`;
+    const body =
+`Hi ${contact || "there"},
 
-  let detailsObj = null;
-  try{ detailsObj = l.details ? JSON.parse(l.details) : null; }catch{}
+Thank you for choosing SmartFits Installations Ltd.
 
-  const action = prettyAction(l.actionType);
+To help us set your account up correctly and plan your deployment efficiently, please complete the Customer Onboarding Form at:
+${window.location.origin}
 
-  const fileName = detailsObj?.fileName ? `<div class="row">File Name: ${escapeHtml(detailsObj.fileName)}</div>` : '';
-  const fileId = detailsObj?.fileId ? `<div class="row">File ID: ${escapeHtml(detailsObj.fileId)}</div>` : '';
-  const customer = detailsObj?.customerEmail ? `<div class="row">Customer Email: ${escapeHtml(detailsObj.customerEmail)}</div>` : '';
-  const company = detailsObj?.companyName ? `<div class="row">Company: ${escapeHtml(detailsObj.companyName)}</div>` : '';
+If you have any questions, please contact our support team:
+Support Phone: 01283 533330
+Support Email: support@smartfits.co.uk
 
-  logBody.innerHTML = `
-    <div class="doc">
-      <div class="kicker" style="margin-bottom:8px;">Log Entry</div>
-      <div class="row"><b>User</b> — ${escapeHtml(l.adminEmail || '')}</div>
-      <div class="row"><b>Action</b> — ${escapeHtml(action)}</div>
-      <div class="row"><b>Timestamp</b> — ${escapeHtml(formatUk(l.timestamp))}</div>
-      <div style="height:10px;"></div>
-      ${company}
-      ${customer}
-      ${fileName}
-      ${fileId}
-    </div>
-  `;
-  openModal(logModal, closeLogBtn);
+Thanks again for the business,
+SmartFits Installations Ltd
+`;
+
+    downloadEml(`${company}_SmartFits_Welcome`, subject, body, email);
+    setText("welcomeStatus", "EML downloaded. Open it in Outlook and press Send.");
+  });
+
+  // Load logs (only if visible)
+  $("loadLogsBtn")?.addEventListener("click", async () => {
+    if ($("logsSection")?.classList.contains("hide")) return;
+
+    setText("logsStatus", "Loading...");
+    const from = $("logsFrom")?.value || "";
+    const to = $("logsTo")?.value || "";
+    const adminContains = $("logsAdminContains")?.value?.trim() || "";
+    const action = $("logsActionType")?.value || "ALL";
+
+    const res = await apiPost(API_LOGS, { from, to, adminContains, action });
+    if (!res || res.ok !== true) {
+      setText("logsStatus", "Unable to load logs.");
+      return;
+    }
+    setText("logsStatus", "");
+    renderLogs(res.logs || []);
+  });
+
+  // Cancellation policy popup button (scroll to policy section)
+  $("openPolicyBtn")?.addEventListener("click", () => {
+    $("policyBottom")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  // Form accept policy hidden input
+  $("acceptPolicy")?.addEventListener("change", () => {
+    const v = $("acceptPolicy")?.checked ? "Yes" : "No";
+    if ($("acceptPolicyValue")) $("acceptPolicyValue").value = v;
+  });
+
+  // Form clear
+  $("clearBtn")?.addEventListener("click", () => {
+    $("deploymentForm")?.reset();
+    if ($("acceptPolicyValue")) $("acceptPolicyValue").value = "No";
+    setText("status", "");
+  });
+
+  // Form submit (keep your existing API submission path if different)
+  $("deploymentForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setText("status", "Submitting...");
+
+    const form = e.target;
+    const fd = new FormData(form);
+    const payload = Object.fromEntries(fd.entries());
+
+    // Important: adjust endpoint to your real submit handler.
+    const res = await apiPost("/api/forms/submit", payload);
+
+    if (!res || res.ok !== true) {
+      setText("status", "Submission failed. Please try again.");
+      return;
+    }
+
+    // Requested message
+    setText("status", "Submitted successfully. Thank you for the business.");
+    form.reset();
+    if ($("acceptPolicyValue")) $("acceptPolicyValue").value = "No";
+  });
 });
-
-closeLogBtn?.addEventListener('click', () => closeModal(logModal, null));
-logModal?.addEventListener('click', (e) => { if(e.target === logModal) closeModal(logModal, null); });
-
-/****************************************************
- * WELCOME EMAIL: open email draft on device (mailto)
- ****************************************************/
-const welcomeForm = document.getElementById('welcomeForm');
-const welcomeStatus = document.getElementById('welcomeStatus');
-
-function setWelcomeStatus(msg, type){
-  if(!welcomeStatus) return;
-  welcomeStatus.textContent = msg || '';
-  welcomeStatus.classList.remove('ok','err');
-  if(type) welcomeStatus.classList.add(type);
-}
-
-welcomeForm?.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  const companyName = String(document.getElementById('welCompany')?.value || '').trim();
-  const contactName = String(document.getElementById('welContact')?.value || '').trim();
-  const customerEmail = String(document.getElementById('welEmail')?.value || '').trim();
-
-  if(!companyName){
-    setWelcomeStatus('Please enter a Company Name.', 'err');
-    return;
-  }
-  if(!customerEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customerEmail)){
-    setWelcomeStatus('Please enter a valid Customer Email Address.', 'err');
-    return;
-  }
-
-  const displayName = contactName || companyName;
-  const subject = `Welcome to Smartfits – Your Customer Onboarding Pack`;
-
-  // Plain text (mailto is limited). This is the “best possible” without server-sent HTML.
-  const body =
-`Dear ${displayName},
-
-Welcome to SmartFits Installations. We’re delighted to have you on board and excited to begin supporting your fleet.
-
-Please view your Customer Onboarding Pack here:
-https://smartfitscustomeronboarding.pages.dev
-
-If you need support, please contact:
-support@smartfits.co.uk
-01283 533330
-
-Kind regards,
-SmartFits Installations Ltd`;
-
-  const mailto = `mailto:${encodeURIComponent(customerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-  // Opens the user’s default mail client (Outlook desktop/app/web depending on device)
-  window.location.href = mailto;
-
-  setWelcomeStatus(`Email draft opened for ${customerEmail}.`, 'ok');
-});
-
-/****************************************************
- * HELPERS
- ****************************************************/
-function escapeHtml(str){
-  return String(str ?? '')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;')
-    .replaceAll("'","&#039;");
-}
-function escapeHtmlAttr(str){
-  // same as escapeHtml, but safe for attributes
-  return escapeHtml(str).replaceAll('\n','&#10;').replaceAll('\r','&#13;');
-}
-
