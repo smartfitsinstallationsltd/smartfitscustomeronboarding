@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SmartFits | Customer Onboarding</title>
   <link rel="stylesheet" href="./assets/styles.css" />
+  <script src="./assets/app.js" defer></script>
 </head>
 
 <body>
@@ -20,7 +21,6 @@
         </div>
 
         <div class="headRight">
-          <!-- Removed: Client Information button -->
           <button type="button" class="chipBtn" id="openAdminBtn">Sign in as an Admin</button>
         </div>
       </div>
@@ -355,8 +355,8 @@
     </div>
   </section>
 
-  <!-- CANCELLATION POLICY (now styled like the rest) -->
-  <section>
+  <!-- CANCELLATION POLICY -->
+  <section id="policySection">
     <div class="shell">
       <p class="kicker">Policy</p>
       <h2>Cancellation Policy</h2>
@@ -429,9 +429,9 @@
       </div>
 
       <div class="modalBody">
-        <!-- LOGIN ONLY (shown first) -->
         <div id="adminLoginOnly">
           <div class="subtleText">Sign in to access the admin dashboard.</div>
+
           <div class="formWrap" style="margin-top:12px;">
             <form id="adminLoginForm" autocomplete="off" novalidate>
               <div class="fields">
@@ -456,143 +456,34 @@
           </div>
         </div>
 
-        <!-- DASHBOARD (hidden until login) -->
         <div id="adminDashboard" class="hidden">
           <div class="adminTopBar">
             <div class="signedInAs" id="signedInAs">Signed in.</div>
             <button class="btnGhost" type="button" id="logoutBtn">Log out</button>
           </div>
 
-          <!-- Customer Onboarding Forms -->
+          <!-- You can paste your full dashboard panels back in here if needed -->
           <div class="panel">
             <div class="panelHead">
               <div>
-                <div class="panelTitle">Customer Onboarding Forms</div>
-                <div class="panelSub">Search by file name. You can optionally filter by date.</div>
+                <div class="panelTitle">Admin</div>
+                <div class="panelSub">You are signed in.</div>
               </div>
             </div>
-
             <div class="panelBody">
-              <div class="row3">
-                <div class="grow">
-                  <label for="fileSearch">Search by file name</label>
-                  <input class="field" id="fileSearch" type="text" placeholder="e.g. Tesco, RAC, 2026-01" />
-                </div>
-                <div class="btnCol">
-                  <button type="button" class="btnGhost" id="toggleDateBtn">Search by date too?</button>
-                </div>
-                <div class="btnCol">
-                  <button type="button" class="primaryBtn" id="fileSearchBtn">Search</button>
-                </div>
-              </div>
-
-              <div id="dateFilters" class="row2 hidden" style="margin-top:12px;">
-                <div>
-                  <label for="fromDate">From</label>
-                  <input class="field" id="fromDate" type="date" />
-                </div>
-                <div>
-                  <label for="toDate">To</label>
-                  <input class="field" id="toDate" type="date" />
-                </div>
-              </div>
-
-              <div class="table" style="margin-top:14px;">
-                <div class="tHead">
-                  <div>File Name</div>
-                  <div>Created</div>
-                  <div>Actions</div>
-                </div>
-                <div class="tBody" id="filesList">
-                  <div class="tEmpty">Search to view files.</div>
-                </div>
-              </div>
-
-              <div class="status" id="filesStatus"></div>
+              <div class="status">Dashboard loaded.</div>
             </div>
           </div>
 
-          <!-- Send Welcome Email -->
-          <div class="panel">
-            <div class="panelHead">
-              <div>
-                <div class="panelTitle">Send Welcome Email</div>
-                <div class="panelSub">Creates a ready-to-send email in your mail app.</div>
-              </div>
-            </div>
-
-            <div class="panelBody">
-              <div class="row2">
-                <div>
-                  <label for="welcomeCompany">Customer / Company Name<span class="requiredMark">*</span></label>
-                  <input class="field" id="welcomeCompany" type="text" />
-                </div>
-                <div>
-                  <label for="welcomeContact">Customer Contact Name (optional)</label>
-                  <input class="field" id="welcomeContact" type="text" />
-                </div>
-              </div>
-
-              <div style="margin-top:12px;">
-                <label for="welcomeEmail">Customer Email Address<span class="requiredMark">*</span></label>
-                <input class="field" id="welcomeEmail" type="email" />
-              </div>
-
-              <div class="actions" style="margin-top:12px;">
-                <button type="button" class="primary" id="openEmailBtn">Open email to send</button>
-              </div>
-
-              <div class="status" id="welcomeStatus"></div>
-            </div>
-          </div>
-
-          <!-- Activity Logs (hidden unless allowed) -->
           <div class="panel hidden" id="logsPanel">
             <div class="panelHead">
               <div>
                 <div class="panelTitle">Activity Logs</div>
-                <div class="panelSub">Plain-English log view. Click an item for details.</div>
+                <div class="panelSub">Only visible for authorised admins.</div>
               </div>
             </div>
-
             <div class="panelBody">
-              <div class="row2">
-                <div>
-                  <label for="logFrom">From</label>
-                  <input class="field" id="logFrom" type="date" />
-                </div>
-                <div>
-                  <label for="logTo">To</label>
-                  <input class="field" id="logTo" type="date" />
-                </div>
-              </div>
-
-              <div class="row2" style="margin-top:12px;">
-                <div>
-                  <label for="logEmailContains">Admin email contains</label>
-                  <input class="field" id="logEmailContains" type="text" placeholder="e.g. tara@" />
-                </div>
-                <div>
-                  <label for="logAction">Action type</label>
-                  <select class="field" id="logAction">
-                    <option value="">All</option>
-                    <option value="LOGIN">Login</option>
-                    <option value="SEARCH_FILES">Search files</option>
-                    <option value="DELETE_FILE">Deleted file</option>
-                    <option value="VIEW_FILE">Viewed file</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="actions" style="margin-top:12px;">
-                <button type="button" class="primary" id="loadLogsBtn">Load logs</button>
-              </div>
-
-              <div class="logList" id="logsList">
-                <div class="tEmpty">Load logs to view activity.</div>
-              </div>
-
-              <div class="status" id="logsStatus"></div>
+              <div class="status">Logs panel (authorised users only).</div>
             </div>
           </div>
         </div>
@@ -600,7 +491,7 @@
     </div>
   </div>
 
-  <!-- ✅ EMPLOYEE DETAILS MODAL -->
+  <!-- ✅ PERSON MODAL -->
   <div class="modalBackdrop" id="personModal" aria-hidden="true">
     <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="personTitle">
       <div class="modalHeader">
@@ -610,18 +501,5 @@
       <div class="modalBody" id="personBody"></div>
     </div>
   </div>
-
-  <!-- ✅ LOG DETAILS MODAL -->
-  <div class="modalBackdrop" id="logModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logTitle">
-      <div class="modalHeader">
-        <div class="title" id="logTitle">Log Details</div>
-        <button class="closeBtn" type="button" id="closeLogBtn">Close</button>
-      </div>
-      <div class="modalBody" id="logBody"></div>
-    </div>
-  </div>
-
-  <script src="./assets/app.js"></script>
 </body>
 </html>
