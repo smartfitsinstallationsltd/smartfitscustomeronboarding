@@ -1,23 +1,23 @@
 /* SmartFits Customer Onboarding - Frontend Logic
-   - Fixes: click handlers not binding, left alignment issues, admin modal routing
-   - Keeps: original design style
+   Matches your Google Apps Script API (JSON body required)
 */
 
 (() => {
   "use strict";
 
   // ====== CONFIG ======
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
+  const GAS_URL =
+    "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
-  // If your GAS expects different action names, change these to match.
+  // Must match GAS switch(action)
   const ACTIONS = {
+    SUBMIT_FORM: "submitForm",
     LOGIN: "adminLogin",
-    LOGOUT: "adminLogout",
-    SEARCH_FILES: "searchFiles",
+    WHOAMI: "whoami",
+    LIST_FILES: "listFiles",
     DELETE_FILE: "deleteFile",
-    VIEW_FILE: "viewFile",
-    LOAD_LOGS: "loadLogs",
-    SUBMIT_FORM: "submitForm"
+    LIST_LOGS: "listLogs",
+    LOG_ACTION: "logAction"
   };
 
   // ====== TEAM DIRECTORY ======
@@ -104,8 +104,14 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  function show(el) { el.classList.add("show"); }
-  function hide(el) { el.classList.remove("show"); }
+  function show(el) {
+    el.classList.add("show");
+    el.setAttribute("aria-hidden", "false");
+  }
+  function hide(el) {
+    el.classList.remove("show");
+    el.setAttribute("aria-hidden", "true");
+  }
 
   function setStatus(el, msg, type) {
     if (!el) return;
@@ -124,41 +130,51 @@
       .replaceAll("'", "&#039;");
   }
 
-  function formatGmt(ts) {
-    try {
-      const d = new Date(ts);
-      return new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "medium",
-        timeStyle: "short",
-        timeZone: "Europe/London"
-      }).format(d) + " GMT";
-    } catch {
-      return String(ts ?? "");
-    }
+  function formatTs(ts) {
+    // GAS sends timestamps as "yyyy-MM-dd HH:mm:ss" (string) for logs, and "yyyy-MM-dd HH:mm" for files.
+    // Just show as-is, but safely.
+    return escapeHtml(ts || "");
   }
 
-  // ====== API ======
-  async function apiCall(params) {
-    // POST as form-encoded is the most GAS-friendly
-    const body = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => body.append(k, v ?? ""));
+  // ====== STATE ======
+  const state = {
+    admin: {
+      authed: false,
+      token: "",
+      admin: null, // {name,email,role,canViewLogs}
+      lastLogs: []
+    }
+  };
+
+  // ====== API CALL (JSON BODY) ======
+  async function apiCall(payloadObj) {
+    // IMPORTANT:
+    // Apps Script web apps can be picky with CORS preflight.
+    // Sending JSON as text/plain usually avoids an OPTIONS preflight.
+    const body = JSON.stringify(payloadObj || {});
 
     const res = await fetch(GAS_URL, {
       method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
       body
     });
 
     const text = await res.text();
-    // GAS sometimes returns text/plain JSON
-    let data;
-    try { data = JSON.parse(text); }
-    catch { data = { ok: false, error: "Invalid response from server", raw: text }; }
 
-    if (!data || data.ok === false) {
-      const msg = data?.error || data?.message || "Request failed.";
-      throw new Error(msg);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("Server did not return valid JSON.");
     }
-    return data;
+
+    if (!data || data.ok !== true) {
+      throw new Error(data?.error || "Request failed.");
+    }
+
+    return data; // {ok:true, ...result}
   }
 
   // ====== MODALS ======
@@ -166,12 +182,20 @@
     const adminModal = $("#adminModal");
     if (!adminModal) return;
 
-    // Always start at login view on open, unless already logged in
+    // If not logged in, show login view only
     if (!state.admin.authed) {
       $("#adminLoginView").style.display = "";
       $("#adminDashView").style.display = "none";
       setStatus($("#adminStatus"), "", "");
+    } else {
+      // Already logged in -> show dashboard
+      $("#adminLoginView").style.display = "none";
+      $("#adminDashView").style.display = "";
+      $("#adminSignedInAs").textContent = `Signed in as ${state.admin.admin?.email || ""}`;
+      const logsCard = $("#logsCard");
+      if (logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
     }
+
     show(adminModal);
   }
 
@@ -185,20 +209,19 @@
     const p = PEOPLE[personKey];
     if (!p) return;
 
-    const personModal = $("#personModal");
+    const modal = $("#personModal");
     const body = $("#personBody");
     const title = $("#personTitle");
-    if (!personModal || !body || !title) return;
+    if (!modal || !body || !title) return;
 
     title.textContent = "Team Member";
 
-    // Modern, clean, matches site — no blue links
     body.innerHTML = `
       <div class="personModalGrid">
         <img class="personModalPhoto" src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"/>
         <div>
-          <h3 class="personModalName">${escapeHtml(p.name)}</h3>
-          <p class="personModalRole">${escapeHtml(p.role)}</p>
+          <div class="personModalName">${escapeHtml(p.name)}</div>
+          <div class="personModalRole">${escapeHtml(p.role)}</div>
 
           <div class="personContactBox">
             <div class="muted" style="font-weight:700; letter-spacing:.2px;">Contact details</div>
@@ -209,10 +232,10 @@
             </div>
 
             ${p.phone ? `
-              <div class="personContactRow">
-                <div class="personKey">Phone:</div>
-                <div class="personVal">${escapeHtml(p.phone)}</div>
-              </div>` : ``}
+            <div class="personContactRow">
+              <div class="personKey">Phone:</div>
+              <div class="personVal">${escapeHtml(p.phone)}</div>
+            </div>` : ``}
           </div>
 
           <div class="personContactBox" style="margin-top:12px;">
@@ -232,13 +255,13 @@
       </div>
     `;
 
-    show(personModal);
+    show(modal);
   }
 
   function closePersonModal() {
-    const personModal = $("#personModal");
-    if (!personModal) return;
-    hide(personModal);
+    const modal = $("#personModal");
+    if (!modal) return;
+    hide(modal);
   }
 
   function openDetailModal(titleText, html) {
@@ -255,72 +278,63 @@
     hide(modal);
   }
 
-  // ====== STATE ======
-  const state = {
-    admin: {
-      authed: false,
-      email: "",
-      token: "", // if your GAS uses tokens
-      canViewLogs: false
-    }
-  };
-
-  // ====== ADMIN: LOGIN / LOGOUT ======
+  // ====== ADMIN AUTH ======
   async function adminLogin(email, password) {
     setStatus($("#adminStatus"), "Signing in...", "");
+
     const data = await apiCall({
       action: ACTIONS.LOGIN,
       email,
       password
     });
 
-    // Expecting something like:
-    // { ok:true, adminEmail:"...", token:"...", permissions:{ viewLogs:true } }
+    // GAS returns: { ok:true, token, admin:{name,email,role,canViewLogs} }
     state.admin.authed = true;
-    state.admin.email = data.adminEmail || email;
     state.admin.token = data.token || "";
-    state.admin.canViewLogs = !!(data.permissions?.viewLogs);
+    state.admin.admin = data.admin || null;
 
-    $("#adminSignedInAs").textContent = `Signed in as ${state.admin.email}`;
+    $("#adminSignedInAs").textContent = `Signed in as ${state.admin.admin?.email || email}`;
 
-    // hide login, show dashboard
     $("#adminLoginView").style.display = "none";
     $("#adminDashView").style.display = "";
     setStatus($("#adminStatus"), "", "");
 
-    // show/hide logs card
     const logsCard = $("#logsCard");
-    if (logsCard) logsCard.style.display = state.admin.canViewLogs ? "" : "none";
+    if (logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
   }
 
   async function adminLogout() {
+    // Your GAS doesn't have an explicit logout handler.
+    // We'll log it via logAction (optional), then clear session client-side.
     try {
-      // optional server logout
-      await apiCall({
-        action: ACTIONS.LOGOUT,
-        token: state.admin.token,
-        email: state.admin.email
-      });
+      if (state.admin.authed && state.admin.token) {
+        await apiCall({
+          action: ACTIONS.LOG_ACTION,
+          token: state.admin.token,
+          actionType: "LOGOUT",
+          details: { message: "Admin logged out (client-side)" }
+        });
+      }
     } catch {
-      // even if server fails, clear client state
+      // ignore
     }
 
     state.admin.authed = false;
-    state.admin.email = "";
     state.admin.token = "";
-    state.admin.canViewLogs = false;
+    state.admin.admin = null;
+    state.admin.lastLogs = [];
 
     $("#adminLoginView").style.display = "";
     $("#adminDashView").style.display = "none";
+
     setStatus($("#filesStatus"), "", "");
     setStatus($("#logsStatus"), "", "");
 
-    // reset tables
     $("#filesTbody").innerHTML = `<tr><td colspan="3" class="muted">No results yet.</td></tr>`;
     $("#logsTbody").innerHTML = `<tr><td colspan="4" class="muted">No logs loaded.</td></tr>`;
   }
 
-  // ====== ADMIN: FILE SEARCH ======
+  // ====== ADMIN FILES ======
   function renderFiles(files) {
     const tbody = $("#filesTbody");
     if (!tbody) return;
@@ -331,43 +345,41 @@
     }
 
     tbody.innerHTML = files.map(f => {
-      const name = escapeHtml(f.fileName || f.name || "");
-      const created = escapeHtml(formatGmt(f.created || f.createdAt || f.time || ""));
-      const fileId = escapeHtml(f.fileId || f.id || "");
-      const viewUrl = escapeHtml(f.viewUrl || f.url || "");
+      const id = escapeHtml(f.id || "");
+      const name = escapeHtml(f.name || "");
+      const created = escapeHtml(f.created || "");
+      const url = escapeHtml(f.url || "");
 
       return `
         <tr>
           <td>${name}</td>
           <td>${created}</td>
           <td>
-            ${viewUrl ? `<button class="adminLink" data-act="viewFile" data-url="${viewUrl}" data-id="${fileId}">View</button>` : ``}
-            <button class="adminDanger" data-act="deleteFile" data-id="${fileId}" data-name="${name}">Delete</button>
+            ${url ? `<button class="adminLink" data-act="openUrl" data-url="${url}">View</button>` : ``}
+            <button class="adminDanger" data-act="deleteFile" data-id="${id}" data-name="${name}">Delete</button>
           </td>
         </tr>
       `;
     }).join("");
   }
 
-  async function searchFiles() {
+  async function listFiles() {
     if (!state.admin.authed) return;
 
     setStatus($("#filesStatus"), "Searching...", "");
 
-    const q = $("#fileNameQuery")?.value?.trim() || "";
-    const from = $("#dateFrom")?.value || "";
-    const to = $("#dateTo")?.value || "";
+    const query = $("#fileNameQuery")?.value?.trim() || "";
+    const fromDate = $("#dateFrom")?.value || "";
+    const toDate = $("#dateTo")?.value || "";
 
     const data = await apiCall({
-      action: ACTIONS.SEARCH_FILES,
+      action: ACTIONS.LIST_FILES,
       token: state.admin.token,
-      email: state.admin.email,
-      query: q,
-      dateFrom: from,
-      dateTo: to
+      query,
+      fromDate,
+      toDate
     });
 
-    // Expecting: { ok:true, files:[...] }
     renderFiles(data.files || []);
     setStatus($("#filesStatus"), `Found ${(data.files || []).length} file(s).`, "ok");
   }
@@ -375,118 +387,94 @@
   async function deleteFile(fileId, fileName) {
     if (!state.admin.authed) return;
 
-    const sure = confirm(`Delete this file?\n\n${fileName || fileId}`);
-    if (!sure) return;
+    const ok = confirm(`Delete this file?\n\n${fileName || fileId}`);
+    if (!ok) return;
 
     setStatus($("#filesStatus"), "Deleting...", "");
 
     await apiCall({
       action: ACTIONS.DELETE_FILE,
       token: state.admin.token,
-      email: state.admin.email,
       fileId
     });
 
-    setStatus($("#filesStatus"), "Deleted.", "ok");
-    await searchFiles();
+    setStatus($("#filesStatus"), "File deleted.", "ok");
+    await listFiles();
   }
 
-  // ====== ADMIN: LOGS ======
-  function actionLabel(action) {
-    switch (action) {
-      case "LOGIN": return "Logged in";
-      case "LOGOUT": return "Logged out";
-      case "DELETE_FILE": return "Deleted file";
-      case "VIEW_FILE": return "Viewed file";
-      case "SEARCH_FILES": return "Searched files";
-      default: return action || "Action";
-    }
-  }
-
+  // ====== ADMIN LOGS ======
   function renderLogs(logs) {
     const tbody = $("#logsTbody");
     if (!tbody) return;
 
     if (!logs || !logs.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found for that filter.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
       return;
     }
 
+    state.admin.lastLogs = logs;
+
     tbody.innerHTML = logs.map((l, idx) => {
-      const ts = formatGmt(l.timestamp || l.time || l.created || "");
-      const admin = escapeHtml(l.adminEmail || l.admin || "");
-      const action = escapeHtml(l.action || l.type || "");
-      const detailsObj = l.details || l.meta || {};
-      const summary =
-        l.summary ||
-        (action === "DELETE_FILE" ? `Deleted: ${detailsObj.fileName || ""}` :
-        action === "VIEW_FILE" ? `Viewed: ${detailsObj.fileName || ""}` :
-        action === "SEARCH_FILES" ? `Query: ${detailsObj.query || ""}` :
-        "");
+      const ts = formatTs(l.timestamp);
+      const adminEmail = escapeHtml(l.adminEmail || "");
+      const actionType = escapeHtml(l.actionType || "");
+      const details = escapeHtml(l.details || "");
 
-      const safeSummary = escapeHtml(summary || "Click to view details");
+      const summary = details.length > 80 ? details.slice(0, 80) + "…" : details;
 
-      // click row -> details modal
       return `
         <tr data-act="openLogDetail" data-idx="${idx}">
-          <td>${escapeHtml(ts)}</td>
-          <td>${admin}</td>
-          <td>${escapeHtml(actionLabel(action))}</td>
-          <td>${safeSummary}</td>
+          <td>${ts}</td>
+          <td>${adminEmail}</td>
+          <td>${actionType}</td>
+          <td>${summary || "<span class='muted'>Click to view</span>"}</td>
         </tr>
       `;
     }).join("");
-
-    // stash last logs for detail modal
-    state.admin.lastLogs = logs;
   }
 
-  async function loadLogs() {
-    if (!state.admin.authed || !state.admin.canViewLogs) return;
+  async function listLogs() {
+    if (!state.admin.authed) return;
+    if (!state.admin.admin?.canViewLogs) return;
 
     setStatus($("#logsStatus"), "Loading logs...", "");
 
-    const from = $("#logFrom")?.value || "";
-    const to = $("#logTo")?.value || "";
-    const emailContains = $("#logEmailContains")?.value?.trim() || "";
+    const fromDate = $("#logFrom")?.value || "";
+    const toDate = $("#logTo")?.value || "";
+    const adminEmail = $("#logEmailContains")?.value?.trim() || "";
     const actionType = $("#logActionType")?.value || "ALL";
 
-    const data = await apiCall({
-      action: ACTIONS.LOAD_LOGS,
+    const payload = {
+      action: ACTIONS.LIST_LOGS,
       token: state.admin.token,
-      email: state.admin.email,
-      dateFrom: from,
-      dateTo: to,
-      emailContains,
-      actionType
-    });
+      fromDate,
+      toDate
+    };
+
+    // GAS: if filterActionType is set, it checks exact match, so we only pass if not ALL
+    if (adminEmail) payload.adminEmail = adminEmail;
+    if (actionType && actionType !== "ALL") payload.actionType = actionType;
+
+    const data = await apiCall(payload);
 
     renderLogs(data.logs || []);
     setStatus($("#logsStatus"), `Loaded ${(data.logs || []).length} log(s).`, "ok");
   }
 
   function openLogDetail(idx) {
-    const logs = state.admin.lastLogs || [];
-    const l = logs[idx];
+    const l = (state.admin.lastLogs || [])[idx];
     if (!l) return;
-
-    const ts = formatGmt(l.timestamp || l.time || l.created || "");
-    const admin = escapeHtml(l.adminEmail || l.admin || "");
-    const action = escapeHtml(l.action || l.type || "");
-    const details = l.details || l.meta || {};
 
     const html = `
       <div class="personContactBox">
-        <div class="personContactRow"><div class="personKey">User:</div><div class="personVal">${admin}</div></div>
-        <div class="personContactRow"><div class="personKey">Action:</div><div class="personVal">${escapeHtml(actionLabel(action))}</div></div>
-        <div class="personContactRow"><div class="personKey">Timestamp:</div><div class="personVal">${escapeHtml(ts)}</div></div>
+        <div class="personContactRow"><div class="personKey">Timestamp:</div><div class="personVal">${escapeHtml(l.timestamp || "")}</div></div>
+        <div class="personContactRow"><div class="personKey">Admin:</div><div class="personVal">${escapeHtml(l.adminEmail || "")}</div></div>
+        <div class="personContactRow"><div class="personKey">Action:</div><div class="personVal">${escapeHtml(l.actionType || "")}</div></div>
       </div>
 
       <div class="personContactBox" style="margin-top:12px;">
-        <div class="muted" style="font-weight:700;">More details</div>
-        <pre style="margin:10px 0 0; white-space:pre-wrap; color:rgba(232,238,252,.92); font-size:12px;">
-${escapeHtml(JSON.stringify(details, null, 2))}
-        </pre>
+        <div class="muted" style="font-weight:700;">Details</div>
+        <pre style="margin:10px 0 0; white-space:pre-wrap; color:rgba(232,238,252,.92); font-size:12px;">${escapeHtml(l.details || "")}</pre>
       </div>
     `;
 
@@ -498,22 +486,15 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
     const statusEl = $("#status");
     setStatus(statusEl, "Submitting...", "");
 
-    const fd = new FormData(formEl);
     const accept = $("#acceptPolicy");
     $("#acceptPolicyValue").value = accept && accept.checked ? "Yes" : "No";
 
-    const payload = {};
+    const fd = new FormData(formEl);
+    const payload = { action: ACTIONS.SUBMIT_FORM };
     fd.forEach((v, k) => payload[k] = String(v ?? ""));
 
     try {
-      // If your form submission is already wired to a different backend,
-      // you can replace this with your existing call.
-      await apiCall({
-        action: ACTIONS.SUBMIT_FORM,
-        ...payload
-      });
-
-      // ✅ requested message (no file name revealed)
+      await apiCall(payload);
       setStatus(statusEl, "Submitted successfully. Thank you for the business.", "ok");
       formEl.reset();
       $("#acceptPolicyValue").value = "No";
@@ -524,7 +505,7 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
 
   // ====== INIT / BIND ======
   function bind() {
-    // Admin modal open/close
+    // Admin open/close
     $("#openAdminBtn")?.addEventListener("click", (e) => {
       e.preventDefault();
       openAdminModal();
@@ -537,19 +518,19 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
     // Detail modal close
     $("#closeDetailBtn")?.addEventListener("click", closeDetailModal);
 
-    // Click outside modal to close
+    // Click outside modal closes
     $$(".modalBackdrop").forEach(backdrop => {
       backdrop.addEventListener("click", (ev) => {
         if (ev.target === backdrop) hide(backdrop);
       });
     });
 
-    // Team cards: event delegation (fixes “nothing happens” even if DOM changes)
+    // Delegated clicks: person cards + admin table actions + log row details
     document.addEventListener("click", (ev) => {
-      const btn = ev.target.closest(".personBtn");
-      if (btn) {
+      const personBtn = ev.target.closest(".personBtn");
+      if (personBtn) {
         ev.preventDefault();
-        const key = btn.getAttribute("data-person");
+        const key = personBtn.getAttribute("data-person");
         openPersonModal(key);
         return;
       }
@@ -559,7 +540,7 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
 
       const act = actBtn.getAttribute("data-act");
 
-      if (act === "viewFile") {
+      if (act === "openUrl") {
         const url = actBtn.getAttribute("data-url");
         if (url) window.open(url, "_blank", "noopener,noreferrer");
         return;
@@ -579,16 +560,16 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
       }
     });
 
-    // Admin login form
+    // Admin login
     $("#adminLoginForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = $("#adminEmail")?.value?.trim() || "";
+      const email = $("#adminEmail")?.value?.trim().toLowerCase() || "";
       const pass = $("#adminPassword")?.value || "";
 
       try {
         await adminLogin(email, pass);
       } catch (err) {
-        setStatus($("#adminStatus"), `Login failed. ${err.message || "Please check your details."}`, "err");
+        setStatus($("#adminStatus"), `Login failed. ${err.message || "Invalid email or password."}`, "err");
       }
     });
 
@@ -598,11 +579,9 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
       setStatus($("#adminStatus"), "", "");
     });
 
-    $("#adminLogoutBtn")?.addEventListener("click", async () => {
-      await adminLogout();
-    });
+    $("#adminLogoutBtn")?.addEventListener("click", adminLogout);
 
-    // Toggle date filter
+    // Toggle date filters
     $("#toggleDateFilterBtn")?.addEventListener("click", () => {
       const wrap = $("#dateFilterWrap");
       if (!wrap) return;
@@ -611,23 +590,25 @@ ${escapeHtml(JSON.stringify(details, null, 2))}
       $("#toggleDateFilterBtn").textContent = isOpen ? "Search by date too?" : "Hide date filter";
     });
 
+    // Files search
     $("#searchFilesBtn")?.addEventListener("click", async () => {
-      try { await searchFiles(); }
+      try { await listFiles(); }
       catch (err) { setStatus($("#filesStatus"), `Search failed. ${err.message || ""}`.trim(), "err"); }
     });
 
+    // Logs load
     $("#loadLogsBtn")?.addEventListener("click", async () => {
-      try { await loadLogs(); }
+      try { await listLogs(); }
       catch (err) { setStatus($("#logsStatus"), `Load failed. ${err.message || ""}`.trim(), "err"); }
     });
 
-    // Policy button scroll
+    // Policy jump
     $("#openPolicyBtn")?.addEventListener("click", () => {
       const el = $("#policyBottom");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
-    // Form submit
+    // Form submit + clear
     const form = $("#deploymentForm");
     if (form) {
       $("#clearBtn")?.addEventListener("click", () => {
