@@ -1,9 +1,7 @@
 :root{
   --bg:#050a14;
   --panel:#0b1430;
-  --panel2:#0a1024;
   --stroke:rgba(255,255,255,.10);
-  --stroke2:rgba(255,255,255,.14);
   --text:rgba(255,255,255,.92);
   --muted:rgba(255,255,255,.70);
   --muted2:rgba(255,255,255,.55);
@@ -12,7 +10,7 @@
   --shadow:0 18px 50px rgba(0,0,0,.55);
   --radius:18px;
 
-  /* ✅ Fine-tune this to push the hero image down/up */
+  /* ✅ tweak this any time */
   --hero-image-offset-y: 10px;
 }
 
@@ -28,9 +26,6 @@ body{
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-a{color:var(--blue2)}
-a:hover{opacity:.9}
 
 .shell{max-width:1100px; margin:0 auto; padding:0 18px;}
 section{padding:34px 0}
@@ -58,6 +53,7 @@ header{
 .brandText .tag{font-size:12px; color:var(--muted2); margin-top:2px}
 
 .headRight{display:flex; align-items:center; gap:10px}
+
 .chipBtn{
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.06);
@@ -98,6 +94,7 @@ h3{font-size:16px; letter-spacing:-.01em;}
   gap:22px;
   align-items:center;
 }
+
 .media{
   border:1px solid rgba(255,255,255,.10);
   border-radius: var(--radius);
@@ -112,6 +109,7 @@ h3{font-size:16px; letter-spacing:-.01em;}
   transform: translateY(var(--hero-image-offset-y));
 }
 
+/* Cards / docs */
 .doc{
   border:1px solid rgba(255,255,255,.10);
   border-radius: var(--radius);
@@ -121,27 +119,29 @@ h3{font-size:16px; letter-spacing:-.01em;}
   margin-top:18px;
 }
 
+/* ✅ UNIVERSAL responsive grid */
 .teamGrid{
   margin-top:14px;
   display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap:12px;
 }
 
-/* Make leader cards span both columns (prevents weird “one row down” misalignment) */
+/* leader spans full width nicely */
 .leaderCard{
   grid-column: 1 / -1;
-  max-width: 520px;
+  max-width: 560px;
   justify-self: center;
 }
 
+/* ✅ HARD FORCE LEFT ALIGN (no centering possible) */
 .person{
   width:100%;
   display:flex;
   align-items:center;
-  justify-content:flex-start;
+  justify-content:flex-start !important;
+  text-align:left !important;
   gap:12px;
-  text-align:left;
   padding:14px 14px;
   border-radius: 16px;
   border:1px solid rgba(255,255,255,.10);
@@ -166,12 +166,13 @@ h3{font-size:16px; letter-spacing:-.01em;}
 .personText{
   display:flex;
   flex-direction:column;
-  align-items:flex-start;  /* ✅ force left alignment */
+  align-items:flex-start !important;
   justify-content:center;
   min-width:0;
 }
+
 .personName{
-  font-weight:700;         /* ✅ name bold */
+  font-weight:600;      /* ✅ LESS BOLD */
   font-size:15px;
   line-height:1.2;
   color: rgba(255,255,255,.95);
@@ -181,7 +182,7 @@ h3{font-size:16px; letter-spacing:-.01em;}
 }
 .personRole{
   margin-top:4px;
-  font-weight:400;         /* ✅ NOT bold */
+  font-weight:400;      /* ✅ NOT BOLD */
   font-size:13px;
   color: var(--muted);
   white-space:nowrap;
@@ -189,6 +190,7 @@ h3{font-size:16px; letter-spacing:-.01em;}
   text-overflow:ellipsis;
 }
 
+/* Form */
 .blockTop{margin-top:18px}
 .formWrap{
   margin-top:14px;
@@ -267,7 +269,7 @@ textarea.field{min-height:90px; resize: vertical;}
 .bigGrid{
   margin-top:16px;
   display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap:14px;
 }
 .bigCard{
@@ -294,7 +296,6 @@ footer{padding:28px 0 34px}
 .footThanks{color:var(--muted)}
 .small{font-size:12px; color:var(--muted2); line-height:1.5}
 .small a{color:var(--blue2)}
-
 .plainLink{color:var(--blue2); text-decoration:none}
 .plainLink:hover{text-decoration:underline}
 
@@ -338,135 +339,12 @@ footer{padding:28px 0 34px}
   cursor:pointer;
 }
 .closeBtn:hover{opacity:.95}
-
 .modalBody{padding:14px}
 .hidden{display:none !important}
 
 .subtleText{color:var(--muted); font-size:13px}
 
-.adminTopBar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-.signedInAs{color:var(--muted)}
-.btnGhost{
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  padding:10px 14px;
-  cursor:pointer;
-}
-.btnGhost:hover{opacity:.95}
-
-.panel{
-  border:1px solid rgba(255,255,255,.10);
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.03);
-  box-shadow: var(--shadow);
-  margin-top:12px;
-}
-.panelHead{
-  padding:14px 14px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-}
-.panelTitle{font-weight:800}
-.panelSub{color:var(--muted2); font-size:12px; margin-top:4px}
-.panelBody{padding:14px}
-
-.row3{
-  display:flex;
-  gap:12px;
-  align-items:flex-end;
-}
-.row3 .grow{flex:1}
-.btnCol{flex:0 0 auto}
-.primaryBtn{
-  border-radius:999px;
-  border:1px solid rgba(96,165,250,.55);
-  background: linear-gradient(90deg, rgba(59,130,246,.85), rgba(96,165,250,.65));
-  color:var(--text);
-  padding:11px 16px;
-  cursor:pointer;
-}
-.primaryBtn:hover{opacity:.95}
-
-.table{width:100%}
-.tHead{
-  display:grid;
-  grid-template-columns: 1fr 160px 160px;
-  gap:10px;
-  padding:10px 10px;
-  color:var(--muted2);
-  font-size:12px;
-}
-.tBody{
-  display:grid;
-  gap:8px;
-  padding:10px;
-}
-.tRow{
-  display:grid;
-  grid-template-columns: 1fr 160px 160px;
-  gap:10px;
-  align-items:center;
-  padding:10px 10px;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius: 14px;
-  background: rgba(0,0,0,.18);
-}
-.tEmpty{
-  color:var(--muted2);
-  font-size:13px;
-  padding:10px;
-}
-.tActions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-start;
-}
-.tActions a,
-.tActions button{
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  padding:8px 12px;
-  cursor:pointer;
-  text-decoration:none;
-  font-size:13px;
-}
-.tActions a:hover,
-.tActions button:hover{opacity:.95}
-
-.logList{
-  margin-top:12px;
-  display:grid;
-  gap:8px;
-}
-.logItem{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:12px 12px;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.18);
-  cursor:pointer;
-}
-.logItem:hover{
-  border-color: rgba(96,165,250,.55);
-  box-shadow: 0 0 0 4px rgba(59,130,246,.08);
-}
-.logLeft{display:flex; flex-direction:column; gap:2px}
-.logMain{font-weight:700}
-.logSub{font-size:12px; color:var(--muted2)}
-.logTime{font-size:12px; color:var(--muted2); white-space:nowrap}
-
+/* Person modal */
 .personModalGrid{
   display:grid;
   grid-template-columns: 180px 1fr;
@@ -483,14 +361,14 @@ footer{padding:28px 0 34px}
 }
 .personModalName{
   font-size:20px;
-  font-weight:850;
-  letter-spacing:-.01em;
+  font-weight:800;
 }
 .personModalRole{
   margin-top:6px;
   color: var(--muted);
   font-weight:400;
 }
+
 .personModalBlock{
   margin-top:14px;
   border:1px solid rgba(255,255,255,.10);
@@ -510,17 +388,14 @@ footer{padding:28px 0 34px}
 }
 .kv .k{color:var(--muted2)}
 .kv .v{color:var(--text)}
-/* ✅ emails not blue */
 .kv a{color:var(--text); text-decoration:none}
 .kv a:hover{text-decoration:underline}
 
-@media (max-width: 920px){
+/* Mobile / tablet */
+@media (max-width: 980px){
   .grid2{grid-template-columns:1fr}
   .row2{grid-template-columns:1fr}
-  .bigGrid{grid-template-columns:1fr}
-  .teamGrid{grid-template-columns:1fr}
-  .leaderCard{grid-column:auto; max-width:none; justify-self:stretch}
-  .tHead, .tRow{grid-template-columns: 1fr 120px 160px}
+  .leaderCard{max-width:none; justify-self:stretch}
   .personModalGrid{grid-template-columns:1fr}
   .personModalImg{width:100%; height:220px}
 }
