@@ -20,7 +20,7 @@
         </div>
 
         <div class="headRight">
-          <!-- Removed "Client Information & Form" chip as requested -->
+          <!-- Removed: Client Information button -->
           <button type="button" class="chipBtn" id="openAdminBtn">Sign in as an Admin</button>
         </div>
       </div>
@@ -154,8 +154,6 @@
               <div class="personRole">Operations Lead</div>
             </div>
           </button>
-
-          <div class="personSpacer"></div>
 
           <button type="button" class="person personBtn" data-person="ellie">
             <img class="avatar" alt="Ellie Topliss" src="./images/ellie_topliss.png" loading="lazy" />
@@ -357,7 +355,7 @@
     </div>
   </section>
 
-  <!-- CANCELLATION POLICY (boxed section to match site styling) -->
+  <!-- CANCELLATION POLICY (now styled like the rest) -->
   <section>
     <div class="shell">
       <p class="kicker">Policy</p>
@@ -365,7 +363,7 @@
       <div class="accentLine"></div>
       <div class="lineGap"></div>
 
-      <div class="doc" id="policyBottom">
+      <div class="doc">
         <p style="margin-top:0;">
           At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
           To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
@@ -422,22 +420,19 @@
     </div>
   </footer>
 
-  <!-- ✅ ADMIN MODAL (popup on same page, NOT /admin) -->
+  <!-- ✅ ADMIN MODAL -->
   <div class="modalBackdrop" id="adminModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <div class="modalHeader">
         <div class="title" id="adminTitle">Admin Dashboard</div>
         <button class="closeBtn" type="button" id="closeAdminBtn">Close</button>
       </div>
 
       <div class="modalBody">
-
-        <!-- SIGN-IN ONLY VIEW -->
-        <div id="adminSigninOnly">
-          <div class="subTitle">Admin Sign In</div>
-          <div class="muted">Sign in to access the admin dashboard.</div>
-
-          <div class="formWrap" style="margin-top:14px;">
+        <!-- LOGIN ONLY (shown first) -->
+        <div id="adminLoginOnly">
+          <div class="subtleText">Sign in to access the admin dashboard.</div>
+          <div class="formWrap" style="margin-top:12px;">
             <form id="adminLoginForm" autocomplete="off" novalidate>
               <div class="fields">
                 <div>
@@ -461,140 +456,153 @@
           </div>
         </div>
 
-        <!-- AUTHENTICATED VIEW (hidden until signed in) -->
-        <div id="adminAuthed" class="hide">
-          <div class="adminTopRow">
-            <div class="muted" id="adminSignedInText"></div>
-            <button type="button" class="pillBtn" id="logoutBtn">Log out</button>
+        <!-- DASHBOARD (hidden until login) -->
+        <div id="adminDashboard" class="hidden">
+          <div class="adminTopBar">
+            <div class="signedInAs" id="signedInAs">Signed in.</div>
+            <button class="btnGhost" type="button" id="logoutBtn">Log out</button>
           </div>
 
-          <!-- Your admin features wrapper. Keep your existing sections inside here. -->
-          <div id="adminFeatures">
-            <!-- You already have these features in your current build;
-                 this wrapper simply hides them until auth is true. -->
+          <!-- Customer Onboarding Forms -->
+          <div class="panel">
+            <div class="panelHead">
+              <div>
+                <div class="panelTitle">Customer Onboarding Forms</div>
+                <div class="panelSub">Search by file name. You can optionally filter by date.</div>
+              </div>
+            </div>
 
-            <div class="doc" style="margin-top:14px;">
-              <h3 style="margin-top:0;">Customer Onboarding Forms</h3>
-              <div class="muted">Search and manage submitted onboarding forms.</div>
-              <div class="lineGap" style="height:10px;"></div>
-
-              <div class="fields">
-                <div>
-                  <label for="fileSearchName">Search by file name</label>
-                  <input class="field" id="fileSearchName" type="text" placeholder="e.g. Tesco, RAC, 2026-01" />
+            <div class="panelBody">
+              <div class="row3">
+                <div class="grow">
+                  <label for="fileSearch">Search by file name</label>
+                  <input class="field" id="fileSearch" type="text" placeholder="e.g. Tesco, RAC, 2026-01" />
                 </div>
-
-                <div class="rowInline">
-                  <button type="button" class="secondary" id="toggleDateSearchBtn">Search by date too?</button>
-                  <button type="button" class="primary" id="searchFilesBtn">Search</button>
+                <div class="btnCol">
+                  <button type="button" class="btnGhost" id="toggleDateBtn">Search by date too?</button>
                 </div>
-
-                <div id="dateSearchRow" class="row2 hide" style="margin-top:10px;">
-                  <div>
-                    <label for="fileFromDate">From</label>
-                    <input class="field" id="fileFromDate" type="date" />
-                  </div>
-                  <div>
-                    <label for="fileToDate">To</label>
-                    <input class="field" id="fileToDate" type="date" />
-                  </div>
+                <div class="btnCol">
+                  <button type="button" class="primaryBtn" id="fileSearchBtn">Search</button>
                 </div>
               </div>
 
-              <div class="adminTableWrap" style="margin-top:14px;">
-                <div class="adminTableHead">
+              <div id="dateFilters" class="row2 hidden" style="margin-top:12px;">
+                <div>
+                  <label for="fromDate">From</label>
+                  <input class="field" id="fromDate" type="date" />
+                </div>
+                <div>
+                  <label for="toDate">To</label>
+                  <input class="field" id="toDate" type="date" />
+                </div>
+              </div>
+
+              <div class="table" style="margin-top:14px;">
+                <div class="tHead">
                   <div>File Name</div>
                   <div>Created</div>
                   <div>Actions</div>
                 </div>
-                <div id="filesTableBody" class="adminTableBody">
-                  <div class="muted">Search to view files.</div>
+                <div class="tBody" id="filesList">
+                  <div class="tEmpty">Search to view files.</div>
                 </div>
+              </div>
+
+              <div class="status" id="filesStatus"></div>
+            </div>
+          </div>
+
+          <!-- Send Welcome Email -->
+          <div class="panel">
+            <div class="panelHead">
+              <div>
+                <div class="panelTitle">Send Welcome Email</div>
+                <div class="panelSub">Creates a ready-to-send email in your mail app.</div>
               </div>
             </div>
 
-            <div class="doc" style="margin-top:14px;">
-              <h3 style="margin-top:0;">Send Welcome Email</h3>
-              <div class="muted">Generates a ready-to-send email (EML) to open in Outlook/Mail.</div>
-
-              <div class="fields" style="margin-top:10px;">
-                <div class="row2">
-                  <div>
-                    <label for="welcomeCompany">Customer / Company Name<span class="requiredMark">*</span></label>
-                    <input class="field" id="welcomeCompany" type="text" />
-                  </div>
-                  <div>
-                    <label for="welcomeContact">Customer Contact Name (optional)</label>
-                    <input class="field" id="welcomeContact" type="text" />
-                  </div>
-                </div>
-
+            <div class="panelBody">
+              <div class="row2">
                 <div>
-                  <label for="welcomeEmail">Customer Email Address<span class="requiredMark">*</span></label>
-                  <input class="field" id="welcomeEmail" type="email" />
+                  <label for="welcomeCompany">Customer / Company Name<span class="requiredMark">*</span></label>
+                  <input class="field" id="welcomeCompany" type="text" />
                 </div>
+                <div>
+                  <label for="welcomeContact">Customer Contact Name (optional)</label>
+                  <input class="field" id="welcomeContact" type="text" />
+                </div>
+              </div>
 
-                <div class="rowInline" style="margin-top:10px;">
-                  <button type="button" class="primary" id="downloadEmlBtn">Download EML for Outlook</button>
-                  <div class="muted" id="welcomeStatus"></div>
-                </div>
+              <div style="margin-top:12px;">
+                <label for="welcomeEmail">Customer Email Address<span class="requiredMark">*</span></label>
+                <input class="field" id="welcomeEmail" type="email" />
+              </div>
+
+              <div class="actions" style="margin-top:12px;">
+                <button type="button" class="primary" id="openEmailBtn">Open email to send</button>
+              </div>
+
+              <div class="status" id="welcomeStatus"></div>
+            </div>
+          </div>
+
+          <!-- Activity Logs (hidden unless allowed) -->
+          <div class="panel hidden" id="logsPanel">
+            <div class="panelHead">
+              <div>
+                <div class="panelTitle">Activity Logs</div>
+                <div class="panelSub">Plain-English log view. Click an item for details.</div>
               </div>
             </div>
 
-            <!-- LOGS (only visible if user has canViewLogs true) -->
-            <div class="doc hide" id="logsSection" style="margin-top:14px;">
-              <h3 style="margin-top:0;">Activity Logs</h3>
-              <div class="muted">View admin activity logs. (Only visible to authorised users.)</div>
-
-              <div class="fields" style="margin-top:10px;">
-                <div class="row2">
-                  <div>
-                    <label for="logsFrom">From</label>
-                    <input class="field" id="logsFrom" type="date" />
-                  </div>
-                  <div>
-                    <label for="logsTo">To</label>
-                    <input class="field" id="logsTo" type="date" />
-                  </div>
+            <div class="panelBody">
+              <div class="row2">
+                <div>
+                  <label for="logFrom">From</label>
+                  <input class="field" id="logFrom" type="date" />
                 </div>
-
-                <div class="row2">
-                  <div>
-                    <label for="logsAdminContains">Admin email contains</label>
-                    <input class="field" id="logsAdminContains" type="text" placeholder="e.g. tara@" />
-                  </div>
-                  <div>
-                    <label for="logsActionType">Action type</label>
-                    <select class="field" id="logsActionType">
-                      <option value="ALL">All</option>
-                      <option value="LOGIN">Login</option>
-                      <option value="DELETE_FILE">Deleted file</option>
-                      <option value="SUBMIT_FORM">Form submitted</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="rowInline">
-                  <button type="button" class="primary" id="loadLogsBtn">Load logs</button>
-                  <div class="muted" id="logsStatus"></div>
+                <div>
+                  <label for="logTo">To</label>
+                  <input class="field" id="logTo" type="date" />
                 </div>
               </div>
 
-              <div class="logsList" id="logsList" style="margin-top:12px;">
-                <div class="muted">Load logs to view activity.</div>
+              <div class="row2" style="margin-top:12px;">
+                <div>
+                  <label for="logEmailContains">Admin email contains</label>
+                  <input class="field" id="logEmailContains" type="text" placeholder="e.g. tara@" />
+                </div>
+                <div>
+                  <label for="logAction">Action type</label>
+                  <select class="field" id="logAction">
+                    <option value="">All</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="SEARCH_FILES">Search files</option>
+                    <option value="DELETE_FILE">Deleted file</option>
+                    <option value="VIEW_FILE">Viewed file</option>
+                  </select>
+                </div>
               </div>
+
+              <div class="actions" style="margin-top:12px;">
+                <button type="button" class="primary" id="loadLogsBtn">Load logs</button>
+              </div>
+
+              <div class="logList" id="logsList">
+                <div class="tEmpty">Load logs to view activity.</div>
+              </div>
+
+              <div class="status" id="logsStatus"></div>
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- ✅ EMPLOYEE DETAILS MODAL (modern layout) -->
+  <!-- ✅ EMPLOYEE DETAILS MODAL -->
   <div class="modalBackdrop" id="personModal" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="personTitle">
+    <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="personTitle">
       <div class="modalHeader">
         <div class="title" id="personTitle">Team Member</div>
         <button class="closeBtn" type="button" id="closePersonBtn">Close</button>
@@ -603,6 +611,17 @@
     </div>
   </div>
 
-  <script src="./assets/app.js" defer></script>
+  <!-- ✅ LOG DETAILS MODAL -->
+  <div class="modalBackdrop" id="logModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logTitle">
+      <div class="modalHeader">
+        <div class="title" id="logTitle">Log Details</div>
+        <button class="closeBtn" type="button" id="closeLogBtn">Close</button>
+      </div>
+      <div class="modalBody" id="logBody"></div>
+    </div>
+  </div>
+
+  <script src="./assets/app.js"></script>
 </body>
 </html>
