@@ -1,505 +1,256 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
   <title>SmartFits | Customer Onboarding</title>
-  <link rel="stylesheet" href="./assets/styles.css" />
-  <script src="./assets/app.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <link rel="stylesheet" href="./assets/style.css"/>
 </head>
 
 <body>
-  <header>
-    <div class="shell">
-      <div class="headInner">
-        <div class="brand">
-          <img class="logo" alt="SmartFits" src="./images/smartfits_logo.png" />
-          <div class="brandText">
-            <div class="name">SMARTFITS</div>
-            <div class="tag">Customer Onboarding</div>
-          </div>
-        </div>
 
-        <div class="headRight">
-          <button type="button" class="chipBtn" id="openAdminBtn">Sign in as an Admin</button>
-        </div>
+<!-- HEADER -->
+<header class="siteHeader">
+  <div class="shell headGrid">
+    <div class="brand">
+      <img class="logo" src="./images/smartfits_logo.png" alt="SmartFits"/>
+      <div class="brandText">
+        <div class="brandName">SMARTFITS</div>
+        <div class="brandTag">Customer Onboarding</div>
       </div>
     </div>
-  </header>
 
-  <!-- ABOUT -->
-  <section>
-    <div class="shell">
-      <div class="grid2">
-        <div>
-          <p class="kicker">Welcome</p>
-          <h1>SmartFits Installations Ltd</h1>
-          <div class="accentLine"></div>
-          <div class="lineGap"></div>
+    <button id="openAdminBtn" class="adminBtn">
+      Sign in as an Admin
+    </button>
+  </div>
+</header>
 
-          <p class="lead">
-            Thank you for choosing SmartFits Installations Ltd. We appreciate your business and the trust you have placed in our team.
-            Established in 2007, SmartFits Installations Ltd specialises in the professional installation and deployment of vehicle safety equipment
-            and fleet management software, supporting safer, more efficient, and compliant fleet operations.
-          </p>
 
-          <p class="lead">
-            As our valued new customer, we are committed to providing high-quality workmanship, consistent standards, and reliable support.
-            Our experienced engineers &amp; office staff ensure your installations are completed efficiently, safely, and with minimal operational disruption.
-          </p>
-
-          <p class="lead">
-            Our goal is to deliver reliable and compliant installations, enable seamless fleet software deployments, reduce vehicle downtime,
-            and build long-term partnerships through performance, transparency, and trust.
-          </p>
-
-          <p class="lead">
-            We value the opportunity to support your current project and look forward to working with you on future fleet and safety operations.
-          </p>
-        </div>
-
-        <aside class="media heroMedia">
-          <img alt="Introduction image" src="./images/introduction_image.png" loading="lazy" />
-        </aside>
-      </div>
-    </div>
-  </section>
-
-  <!-- TEAM -->
-  <section>
-    <div class="shell">
-      <p class="kicker">Meet the team</p>
-      <h2>SmartFits Installations Team</h2>
+<!-- INTRO -->
+<section class="introSection">
+  <div class="shell grid2">
+    <div>
+      <p class="kicker">WELCOME</p>
+      <h1>SmartFits Installations Ltd</h1>
       <div class="accentLine"></div>
-      <div class="lineGap"></div>
 
-      <!-- SALES -->
-      <div class="doc">
-        <h3>Sales &amp; Business Development</h3>
-        <p>
-          Our Sales &amp; Business Development team builds relationships and communicates the value of our solutions to ensure your fleet and safety needs are met.
-        </p>
+      <p>
+        Thank you for choosing SmartFits Installations Ltd. We appreciate your business and the trust you have placed in our team.
+      </p>
+      <p>
+        Established in 2007, SmartFits Installations Ltd specialises in professional installation and deployment of vehicle safety equipment and fleet management software.
+      </p>
+      <p>
+        Our goal is to deliver reliable and compliant installations, enable seamless fleet software deployments and build long-term partnerships.
+      </p>
+    </div>
 
-        <div class="teamGrid">
-          <button type="button" class="person personBtn" data-person="tara">
-            <img class="avatar" alt="Tara Hassall" src="./images/tara_hassall.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Tara Hassall</div>
-              <div class="personRole">Managing Director</div>
-            </div>
-          </button>
+    <aside class="heroImage">
+      <img src="./images/introduction_image.png" alt="Introduction">
+    </aside>
+  </div>
+</section>
 
-          <button type="button" class="person personBtn" data-person="charlie">
-            <img class="avatar" alt="Charlie Inger" src="./images/charlie_inger.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Charlie Inger</div>
-              <div class="personRole">Sales &amp; Business Development Manager</div>
-            </div>
-          </button>
-        </div>
-      </div>
 
-      <!-- CUSTOMER SUCCESS -->
-      <div class="doc">
-        <h3>Customer Success Team</h3>
-        <p>
-          Our Customer Success Team provides ongoing assistance and guidance, ensuring you get the most from your installations, fleet management software,
-          and vehicle safety systems. This division also includes Technical Support, offering expert help whenever required.
-        </p>
+<!-- TEAM -->
+<section class="teamSection">
+  <div class="shell">
+    <p class="kicker">MEET THE TEAM</p>
+    <h2>SmartFits Installations Team</h2>
+    <div class="accentLine"></div>
 
-        <div class="teamGrid">
-          <button type="button" class="person personBtn leaderCard" data-person="emma">
-            <img class="avatar" alt="Emma Sumner" src="./images/emma_sumner.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Emma Sumner</div>
-              <div class="personRole">Customer Success Team Leader</div>
-            </div>
-          </button>
+    <!-- SALES -->
+    <div class="teamBlock">
+      <h3>Sales & Business Development</h3>
+      <p>Our Sales team builds relationships and communicates the value of our solutions.</p>
 
-          <button type="button" class="person personBtn" data-person="kelly">
-            <img class="avatar" alt="Kelly Mullen" src="./images/kelly_mullen.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Kelly Mullen</div>
-              <div class="personRole">Customer Success Team Member</div>
-            </div>
-          </button>
+      <div class="teamGrid">
 
-          <button type="button" class="person personBtn" data-person="aleks">
-            <img class="avatar" alt="Aleks Fossick" src="./images/aleks_fossick.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Aleks Fossick</div>
-              <div class="personRole">Customer Success Team Member</div>
-            </div>
-          </button>
-        </div>
-      </div>
+        <button class="personCard" data-person="tara">
+          <img src="./images/tara_hassall.png">
+          <div class="personText">
+            <div class="personName">Tara Hassall</div>
+            <div class="personRole">Managing Director</div>
+          </div>
+        </button>
 
-      <!-- PROJECT COORDS / FIELD OPS -->
-      <div class="doc">
-        <h3>Project Coordinators / Field Operations Support</h3>
-        <p>
-          The Project Coordinators manage advanced installations and large-scale deployments, overseeing planning, scheduling, and execution to ensure every complex
-          project runs smoothly and on time.
-        </p>
-        <p>
-          Our Field Operations Support Team is office-based, coordinating directly with customers to schedule dates and times for engineers to attend and complete
-          installations efficiently and safely.
-        </p>
+        <button class="personCard" data-person="charlie">
+          <img src="./images/charlie_inger.png">
+          <div class="personText">
+            <div class="personName">Charlie Inger</div>
+            <div class="personRole">Sales & Business Development Manager</div>
+          </div>
+        </button>
 
-        <div class="teamGrid">
-          <button type="button" class="person personBtn leaderCard" data-person="roz">
-            <img class="avatar" alt="Roz Hardwick" src="./images/roz_hardwick.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Roz Hardwick</div>
-              <div class="personRole">Operations Lead</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="ellie">
-            <img class="avatar" alt="Ellie Topliss" src="./images/ellie_topliss.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Ellie Topliss</div>
-              <div class="personRole">Project Coordinator</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="sophie">
-            <img class="avatar" alt="Sophie Turner" src="./images/sophie_turner.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Sophie Turner</div>
-              <div class="personRole">Project Coordinator</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="amanda">
-            <img class="avatar" alt="Amanda Clarke" src="./images/amanda_clarke.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Amanda Clarke</div>
-              <div class="personRole">Field Operations Team Member</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="rosie">
-            <img class="avatar" alt="Rosie Smart" src="./images/rosie_smart.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Rosie Smart</div>
-              <div class="personRole">Field Operations Team Member</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="bridie">
-            <img class="avatar" alt="Bridie Southam" src="./images/bridie_southam.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Bridie Southam</div>
-              <div class="personRole">Field Operations Team Member</div>
-            </div>
-          </button>
-
-          <button type="button" class="person personBtn" data-person="kasia">
-            <img class="avatar" alt="Kasia Dzielak" src="./images/kasia_dzielak.png" loading="lazy" />
-            <div class="personText">
-              <div class="personName">Kasia Dzielak</div>
-              <div class="personRole">Field Operations Team Member</div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <!-- FORM -->
-      <div class="blockTop">
-        <p class="kicker">Client information</p>
-        <h2>Customer Onboarding Form</h2>
-        <div class="accentLine"></div>
-        <div class="lineGap"></div>
-
-        <p class="lead">
-          Please complete the details below. This helps us set up your account correctly, plan deployment efficiently, and keep invoicing accurate.
-          Fields marked with <span class="reqStar">*</span> are required.
-        </p>
-
-        <div class="formWrap">
-          <form id="deploymentForm" autocomplete="off" novalidate>
-            <div class="fields">
-              <div>
-                <label for="fullCompanyName">Full Company Name<span class="requiredMark">*</span></label>
-                <input class="field" id="fullCompanyName" name="fullCompanyName" type="text" required />
-              </div>
-
-              <div class="row2">
-                <div>
-                  <label for="vatNumber">VAT Number<span class="requiredMark">*</span></label>
-                  <input class="field" id="vatNumber" name="vatNumber" type="text" required />
-                </div>
-                <div>
-                  <label for="companyRegNumber">Company Registration Number<span class="requiredMark">*</span></label>
-                  <input class="field" id="companyRegNumber" name="companyRegNumber" type="text" required />
-                </div>
-              </div>
-
-              <div>
-                <label for="invoiceAddress">Full Address for Invoicing Purposes<span class="requiredMark">*</span></label>
-                <textarea class="field" id="invoiceAddress" name="invoiceAddress" required></textarea>
-              </div>
-
-              <div class="row2">
-                <div>
-                  <label for="accountsContactName">Accounts Department Contact Name<span class="requiredMark">*</span></label>
-                  <input class="field" id="accountsContactName" name="accountsContactName" type="text" required />
-                </div>
-                <div>
-                  <label for="accountsContactNumber">Accounts Department Contact Number<span class="requiredMark">*</span></label>
-                  <input class="field" id="accountsContactNumber" name="accountsContactNumber" type="text" required />
-                </div>
-              </div>
-
-              <div>
-                <label for="accountsEmail">Accounts Department Email (for receiving invoices)<span class="requiredMark">*</span></label>
-                <input class="field" id="accountsEmail" name="accountsEmail" type="text" required />
-                <div class="hint">Please use the primary email for invoices and invoice queries.</div>
-              </div>
-
-              <div>
-                <label for="poNumber">Purchase Order Number for Invoice if Required</label>
-                <input class="field" id="poNumber" name="poNumber" type="text" />
-              </div>
-
-              <div class="row2">
-                <div>
-                  <label for="mainContactName">Main Contact Name for Installation Deployment<span class="requiredMark">*</span></label>
-                  <input class="field" id="mainContactName" name="mainContactName" type="text" required />
-                </div>
-                <div>
-                  <label for="mainContactNumber">Main Contact Number for Installation Deployment<span class="requiredMark">*</span></label>
-                  <input class="field" id="mainContactNumber" name="mainContactNumber" type="text" required />
-                </div>
-              </div>
-
-              <div>
-                <label for="mainContactEmail">Main Contact Email for Installation Deployment<span class="requiredMark">*</span></label>
-                <input class="field" id="mainContactEmail" name="mainContactEmail" type="text" required />
-                <div class="hint">We’ll use this contact for deployment scheduling and updates.</div>
-              </div>
-
-              <div class="checkRow">
-                <input type="checkbox" id="acceptPolicy" name="acceptPolicy" required />
-                <label for="acceptPolicy">
-                  I Have Read &amp; Accept the
-                  <button type="button" class="linkBtn" id="openPolicyBtn"><b>Cancellation Policy</b></button>
-                </label>
-              </div>
-
-              <input type="hidden" id="acceptPolicyValue" name="acceptPolicyValue" value="No" />
-            </div>
-
-            <div class="actions">
-              <button type="button" id="clearBtn">Clear</button>
-              <button type="submit" class="primary" id="submitBtn">Submit</button>
-            </div>
-
-            <div class="status" id="status"></div>
-          </form>
-        </div>
       </div>
     </div>
-  </section>
 
-  <!-- ADDITIONAL SERVICES -->
-  <section>
-    <div class="shell">
-      <p class="kicker">Additional Services</p>
-      <h2>Additional Services</h2>
-      <div class="accentLine"></div>
-      <div class="lineGap"></div>
+    <!-- CUSTOMER SUCCESS -->
+    <div class="teamBlock">
+      <h3>Customer Success Team</h3>
+      <p>Our Customer Success Team provides ongoing assistance and guidance.</p>
 
-      <div class="bigGrid">
-        <div class="bigCard">
-          <img alt="Prolius" src="./images/prolius_logo.png" loading="lazy" />
-          <div class="pad">
-            <h3 class="svcTitle">Prolius</h3>
-            <p class="svcCardText">
-              Prolius Fleet Management is a comprehensive digital platform that helps organisations monitor, manage, and optimise their vehicle fleets by providing integrated tracking, compliance management, driver performance insights and licence checking.
-            </p>
+      <div class="teamGrid">
+
+        <button class="personCard" data-person="emma">
+          <img src="./images/emma_sumner.png">
+          <div class="personText">
+            <div class="personName">Emma Sumner</div>
+            <div class="personRole">Customer Success Team Leader</div>
           </div>
-        </div>
+        </button>
 
-        <div class="bigCard">
-          <img alt="Multi-camera systems" src="./images/multi_camera_systems.png" loading="lazy" />
-          <div class="pad">
-            <h3 class="svcTitle">Multi-camera systems</h3>
-            <p class="svcCardText">
-              Integrated into MyGeotab, the multi-camera system delivers seamless access to real-time and recorded video alongside vehicle and driver data, enhancing safety insights, incident review, and fleet operational visibility from a single platform.
-            </p>
+        <button class="personCard" data-person="kelly">
+          <img src="./images/kelly_mullen.png">
+          <div class="personText">
+            <div class="personName">Kelly Mullen</div>
+            <div class="personRole">Customer Success Team Member</div>
           </div>
-        </div>
+        </button>
 
-        <div class="bigCard">
-          <img alt="Live Dash-cams" src="./images/vehicle_dashcam.png" loading="lazy" />
-          <div class="pad">
-            <h3 class="svcTitle">Live Dash-cams</h3>
-            <p class="svcCardText">
-              Integrated into MyGeotab, AI-enabled dash cameras capture and analyse driving behaviour in real time, using advanced algorithms to detect risk, improve driver safety, support coaching, and provide actionable insights directly within a single fleet management platform.
-            </p>
+        <button class="personCard" data-person="aleks">
+          <img src="./images/aleks_fossick.png">
+          <div class="personText">
+            <div class="personName">Aleks Fossick</div>
+            <div class="personRole">Customer Success Team Member</div>
           </div>
-        </div>
+        </button>
 
-        <div class="bigCard">
-          <img alt="Commercial Upgrades" src="./images/commercial_upgrades.png" loading="lazy" />
-          <div class="pad">
-            <h3 class="svcTitle">Commercial Upgrades</h3>
-            <p class="svcCardText">
-              Commercial vehicle upgrades such as parking sensors and advanced lighting systems enhance driver awareness, manoeuvring safety, and vehicle visibility, while supporting safer operations and reduced incident risk across the fleet.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
-  </section>
 
-  <!-- CANCELLATION POLICY -->
-  <section id="policySection">
-    <div class="shell">
-      <p class="kicker">Policy</p>
-      <h2>Cancellation Policy</h2>
-      <div class="accentLine"></div>
-      <div class="lineGap"></div>
+    <!-- OPERATIONS -->
+    <div class="teamBlock">
+      <h3>Project Coordinators / Field Operations</h3>
 
-      <div class="doc">
-        <p style="margin-top:0;">
-          At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
-          To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
-        </p>
+      <div class="teamGrid">
 
-        <h3 style="margin-top:14px;">Cancellation Notice</h3>
-        <ul>
-          <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
-          <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
-          <li>Business days are defined as Monday to Friday, excluding UK bank holidays. Weekends and bank holidays are not counted as working days for notice periods.</li>
-        </ul>
+        <button class="personCard" data-person="roz">
+          <img src="./images/roz_hardwick.png">
+          <div class="personText">
+            <div class="personName">Roz Hardwick</div>
+            <div class="personRole">Operations Lead</div>
+          </div>
+        </button>
 
-        <h3 style="margin-top:14px;">If you wish to cancel an appointment:</h3>
-        <ul>
-          <li>Call us on <b>01283 533330</b>, or</li>
-          <li>Email us at <a href="mailto:support@smartfits.co.uk" class="plainLink">support@smartfits.co.uk</a></li>
-        </ul>
-        <p>We recommend email as it provides a date and time stamp for proof of cancellation.</p>
+        <button class="personCard" data-person="ellie">
+          <img src="./images/ellie_topliss.png">
+          <div class="personText">
+            <div class="personName">Ellie Topliss</div>
+            <div class="personRole">Project Coordinator</div>
+          </div>
+        </button>
 
-        <h3 style="margin-top:14px;">Incomplete Jobs Due to Client-Side Issues</h3>
-        <p>
-          If our engineer attends site and is unable to complete the scheduled work due to client-side issues
-          (e.g., unavailable vehicles, missing equipment, denied access), it is treated as a late cancellation, and:
-        </p>
-        <ul>
-          <li>The client will be charged 100% of the originally quoted full price.</li>
-          <li>Return visits will charge only for additional time/work to complete remaining tasks.</li>
-        </ul>
+        <button class="personCard" data-person="sophie">
+          <img src="./images/sophie_turner.png">
+          <div class="personText">
+            <div class="personName">Sophie Turner</div>
+            <div class="personRole">Project Coordinator</div>
+          </div>
+        </button>
 
-        <h3 style="margin-top:14px;">Billing Responsibility</h3>
-        <p>
-          This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
-          Fees/communications will be directed to the established account holder.
-        </p>
+        <button class="personCard" data-person="amanda">
+          <img src="./images/amanda_clarke.png">
+          <div class="personText">
+            <div class="personName">Amanda Clarke</div>
+            <div class="personRole">Field Operations Team Member</div>
+          </div>
+        </button>
+
+        <button class="personCard" data-person="rosie">
+          <img src="./images/rosie_smart.png">
+          <div class="personText">
+            <div class="personName">Rosie Smart</div>
+            <div class="personRole">Field Operations Team Member</div>
+          </div>
+        </button>
+
+        <button class="personCard" data-person="bridie">
+          <img src="./images/bridie_southam.png">
+          <div class="personText">
+            <div class="personName">Bridie Southam</div>
+            <div class="personRole">Field Operations Team Member</div>
+          </div>
+        </button>
+
+        <button class="personCard" data-person="kasia">
+          <img src="./images/kasia_dzielak.png">
+          <div class="personText">
+            <div class="personName">Kasia Dzielak</div>
+            <div class="personRole">Field Operations Team Member</div>
+          </div>
+        </button>
+
       </div>
     </div>
-  </section>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="shell">
-      <div class="footBox">
-        <div class="footTop">
-          <img class="logo" alt="SmartFits" src="./images/smartfits_logo.png" style="height:30px" />
-          <div class="footThanks">Thank you for the business.</div>
-        </div>
+  </div>
+</section>
 
-        <div class="small">
-          SmartFits Installations Limited • 01283 533330 •
-          <a href="mailto:support@smartfits.co.uk">support@smartfits.co.uk</a><br/>
-          4 Eastgate Business Centre, Eastern Avenue, Burton on Trent, DE13 0AT
-        </div>
-      </div>
+
+<!-- CANCELLATION POLICY -->
+<section class="policySection">
+  <div class="shell policyBox">
+    <h2>Cancellation Policy</h2>
+    <div class="accentLine"></div>
+
+    <p>At SmartFits we are committed to efficient scheduling and resource planning.</p>
+
+    <ul>
+      <li><b>More than 24 hours notice</b> – No charge</li>
+      <li><b>Less than 24 hours notice</b> – 100% charge</li>
+    </ul>
+
+    <p>
+      Call: <b>01283 533330</b><br>
+      Email: <b>support@smartfits.co.uk</b>
+    </p>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="shell smallFooter">
+    SmartFits Installations Ltd • 01283 533330 • support@smartfits.co.uk
+  </div>
+</footer>
+
+
+
+<!-- TEAM POPUP -->
+<div class="modalBackdrop" id="personModal">
+  <div class="modalCard">
+    <button class="closeBtn" id="closePersonBtn">Close</button>
+    <div id="personContent"></div>
+  </div>
+</div>
+
+
+<!-- ADMIN LOGIN POPUP -->
+<div class="modalBackdrop" id="adminModal">
+  <div class="modalCard">
+    <button class="closeBtn" id="closeAdminBtn">Close</button>
+
+    <div id="adminLoginArea">
+      <h2>Admin Sign In</h2>
+      <input id="adminEmail" placeholder="Email">
+      <input id="adminPassword" type="password" placeholder="Password">
+      <button id="adminLoginBtn">Sign In</button>
+      <div id="adminStatus"></div>
     </div>
-  </footer>
 
-  <!-- ✅ ADMIN MODAL -->
-  <div class="modalBackdrop" id="adminModal" aria-hidden="true">
-    <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <div class="modalHeader">
-        <div class="title" id="adminTitle">Admin Dashboard</div>
-        <button class="closeBtn" type="button" id="closeAdminBtn">Close</button>
-      </div>
-
-      <div class="modalBody">
-        <div id="adminLoginOnly">
-          <div class="subtleText">Sign in to access the admin dashboard.</div>
-
-          <div class="formWrap" style="margin-top:12px;">
-            <form id="adminLoginForm" autocomplete="off" novalidate>
-              <div class="fields">
-                <div>
-                  <label for="adminEmail">Email</label>
-                  <input class="field" id="adminEmail" name="email" type="email" placeholder="name@smartfits.co.uk" required />
-                </div>
-
-                <div>
-                  <label for="adminPassword">Password</label>
-                  <input class="field" id="adminPassword" name="password" type="password" placeholder="••••••••" required />
-                </div>
-              </div>
-
-              <div class="actions">
-                <button type="button" id="adminClearBtn">Clear</button>
-                <button type="submit" class="primary" id="adminSubmitBtn">Sign in</button>
-              </div>
-
-              <div class="status" id="adminStatus"></div>
-            </form>
-          </div>
-        </div>
-
-        <div id="adminDashboard" class="hidden">
-          <div class="adminTopBar">
-            <div class="signedInAs" id="signedInAs">Signed in.</div>
-            <button class="btnGhost" type="button" id="logoutBtn">Log out</button>
-          </div>
-
-          <!-- You can paste your full dashboard panels back in here if needed -->
-          <div class="panel">
-            <div class="panelHead">
-              <div>
-                <div class="panelTitle">Admin</div>
-                <div class="panelSub">You are signed in.</div>
-              </div>
-            </div>
-            <div class="panelBody">
-              <div class="status">Dashboard loaded.</div>
-            </div>
-          </div>
-
-          <div class="panel hidden" id="logsPanel">
-            <div class="panelHead">
-              <div>
-                <div class="panelTitle">Activity Logs</div>
-                <div class="panelSub">Only visible for authorised admins.</div>
-              </div>
-            </div>
-            <div class="panelBody">
-              <div class="status">Logs panel (authorised users only).</div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div id="adminDashboard" style="display:none;">
+      <h2>Admin Dashboard</h2>
+      <button id="logoutBtn">Log out</button>
+      <p>Admin content loads here after login.</p>
     </div>
   </div>
+</div>
 
-  <!-- ✅ PERSON MODAL -->
-  <div class="modalBackdrop" id="personModal" aria-hidden="true">
-    <div class="modal modalWide" role="dialog" aria-modal="true" aria-labelledby="personTitle">
-      <div class="modalHeader">
-        <div class="title" id="personTitle">Team Member</div>
-        <button class="closeBtn" type="button" id="closePersonBtn">Close</button>
-      </div>
-      <div class="modalBody" id="personBody"></div>
-    </div>
-  </div>
+
+<script src="./assets/app.js"></script>
 </body>
 </html>
