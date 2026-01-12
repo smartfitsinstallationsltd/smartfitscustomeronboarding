@@ -1,7 +1,3 @@
-/* SmartFits Customer Onboarding - Frontend Logic
-   Matches your Google Apps Script API (JSON body required)
-*/
-
 (() => {
   "use strict";
 
@@ -9,7 +5,6 @@
   const GAS_URL =
     "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
-  // Must match GAS switch(action)
   const ACTIONS = {
     SUBMIT_FORM: "submitForm",
     LOGIN: "adminLogin",
@@ -17,101 +12,33 @@
     LIST_FILES: "listFiles",
     DELETE_FILE: "deleteFile",
     LIST_LOGS: "listLogs",
-    LOG_ACTION: "logAction"
+    LOG_ACTION: "logAction",
+    SEND_WELCOME: "sendWelcomeEmail"
   };
 
-  // ====== TEAM DIRECTORY ======
   const SUPPORT = { phone: "01283 533330", email: "support@smartfits.co.uk" };
 
   const PEOPLE = {
-    tara: {
-      name: "Tara Hassall",
-      role: "Managing Director",
-      email: "tara@smartfits.co.uk",
-      phone: "07894 880559",
-      img: "./images/tara_hassall.png"
-    },
-    charlie: {
-      name: "Charlie Inger",
-      role: "Sales & Business Development Manager",
-      email: "charlie@smartfits.co.uk",
-      phone: "07385 099620",
-      img: "./images/charlie_inger.png"
-    },
-    emma: {
-      name: "Emma Sumner",
-      role: "Customer Success Team Leader",
-      email: "emma@smartfits.co.uk",
-      img: "./images/emma_sumner.png"
-    },
-    kelly: {
-      name: "Kelly Mullen",
-      role: "Customer Success Team Member",
-      email: "kelly@smartfits.co.uk",
-      img: "./images/kelly_mullen.png"
-    },
-    aleks: {
-      name: "Aleks Fossick",
-      role: "Customer Success Team Member",
-      email: "aleks@smartfits.co.uk",
-      img: "./images/aleks_fossick.png"
-    },
-    roz: {
-      name: "Roz Hardwick",
-      role: "Operations Lead",
-      email: "roz@smartfits.co.uk",
-      img: "./images/roz_hardwick.png"
-    },
-    ellie: {
-      name: "Ellie Topliss",
-      role: "Project Coordinator",
-      email: "ellie@smartfits.co.uk",
-      img: "./images/ellie_topliss.png"
-    },
-    sophie: {
-      name: "Sophie Turner",
-      role: "Project Coordinator",
-      email: "sophie@smartfits.co.uk",
-      img: "./images/sophie_turner.png"
-    },
-    amanda: {
-      name: "Amanda Clarke",
-      role: "Field Operations Team Member",
-      email: "amanda@smartfits.co.uk",
-      img: "./images/amanda_clarke.png"
-    },
-    rosie: {
-      name: "Rosie Smart",
-      role: "Field Operations Team Member",
-      email: "rosie@smartfits.co.uk",
-      img: "./images/rosie_smart.png"
-    },
-    bridie: {
-      name: "Bridie Southam",
-      role: "Field Operations Team Member",
-      email: "bridie@smartfits.co.uk",
-      img: "./images/bridie_southam.png"
-    },
-    kasia: {
-      name: "Kasia Dzielak",
-      role: "Field Operations Team Member",
-      email: "kasia@smartfits.co.uk",
-      img: "./images/kasia_dzielak.png"
-    }
+    tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "07894 880559", img: "./images/tara_hassall.png" },
+    charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
+    emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", img: "./images/emma_sumner.png" },
+    kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "kelly@smartfits.co.uk", img: "./images/kelly_mullen.png" },
+    aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "aleks@smartfits.co.uk", img: "./images/aleks_fossick.png" },
+    roz: { name: "Roz Hardwick", role: "Operations Lead", email: "roz@smartfits.co.uk", img: "./images/roz_hardwick.png" },
+    ellie: { name: "Ellie Topliss", role: "Project Coordinator", email: "ellie@smartfits.co.uk", img: "./images/ellie_topliss.png" },
+    sophie: { name: "Sophie Turner", role: "Project Coordinator", email: "sophie@smartfits.co.uk", img: "./images/sophie_turner.png" },
+    amanda: { name: "Amanda Clarke", role: "Field Operations Team Member", email: "amanda@smartfits.co.uk", img: "./images/amanda_clarke.png" },
+    rosie: { name: "Rosie Smart", role: "Field Operations Team Member", email: "rosie@smartfits.co.uk", img: "./images/rosie_smart.png" },
+    bridie: { name: "Bridie Southam", role: "Field Operations Team Member", email: "bridie@smartfits.co.uk", img: "./images/bridie_southam.png" },
+    kasia: { name: "Kasia Dzielak", role: "Field Operations Team Member", email: "kasia@smartfits.co.uk", img: "./images/kasia_dzielak.png" }
   };
 
   // ====== HELPERS ======
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  function show(el) {
-    el.classList.add("show");
-    el.setAttribute("aria-hidden", "false");
-  }
-  function hide(el) {
-    el.classList.remove("show");
-    el.setAttribute("aria-hidden", "true");
-  }
+  function show(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
+  function hide(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
 
   function setStatus(el, msg, type) {
     if (!el) return;
@@ -130,51 +57,32 @@
       .replaceAll("'", "&#039;");
   }
 
-  function formatTs(ts) {
-    // GAS sends timestamps as "yyyy-MM-dd HH:mm:ss" (string) for logs, and "yyyy-MM-dd HH:mm" for files.
-    // Just show as-is, but safely.
-    return escapeHtml(ts || "");
-  }
-
   // ====== STATE ======
   const state = {
     admin: {
       authed: false,
       token: "",
-      admin: null, // {name,email,role,canViewLogs}
+      admin: null,
       lastLogs: []
     }
   };
 
-  // ====== API CALL (JSON BODY) ======
+  // ====== API CALL ======
   async function apiCall(payloadObj) {
-    // IMPORTANT:
-    // Apps Script web apps can be picky with CORS preflight.
-    // Sending JSON as text/plain usually avoids an OPTIONS preflight.
     const body = JSON.stringify(payloadObj || {});
-
     const res = await fetch(GAS_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body
     });
 
     const text = await res.text();
-
     let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Server did not return valid JSON.");
-    }
+    try { data = JSON.parse(text); }
+    catch { throw new Error("Server did not return valid JSON."); }
 
-    if (!data || data.ok !== true) {
-      throw new Error(data?.error || "Request failed.");
-    }
-
-    return data; // {ok:true, ...result}
+    if (!data || data.ok !== true) throw new Error(data?.error || "Request failed.");
+    return data;
   }
 
   // ====== MODALS ======
@@ -182,15 +90,14 @@
     const adminModal = $("#adminModal");
     if (!adminModal) return;
 
-    // If not logged in, show login view only
     if (!state.admin.authed) {
       $("#adminLoginView").style.display = "";
       $("#adminDashView").style.display = "none";
       setStatus($("#adminStatus"), "", "");
     } else {
-      // Already logged in -> show dashboard
       $("#adminLoginView").style.display = "none";
       $("#adminDashView").style.display = "";
+
       $("#adminSignedInAs").textContent = `Signed in as ${state.admin.admin?.email || ""}`;
       const logsCard = $("#logsCard");
       if (logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
@@ -201,8 +108,7 @@
 
   function closeAdminModal() {
     const adminModal = $("#adminModal");
-    if (!adminModal) return;
-    hide(adminModal);
+    if (adminModal) hide(adminModal);
   }
 
   function openPersonModal(personKey) {
@@ -224,30 +130,30 @@
           <div class="personModalRole">${escapeHtml(p.role)}</div>
 
           <div class="personContactBox">
-            <div class="muted" style="font-weight:700; letter-spacing:.2px;">Contact details</div>
+            <div class="muted" style="font-weight:800; letter-spacing:.18px;">Contact details</div>
 
             <div class="personContactRow">
-              <div class="personKey">Email:</div>
+              <div class="personKey">Email</div>
               <div class="personVal">${escapeHtml(p.email)}</div>
             </div>
 
             ${p.phone ? `
             <div class="personContactRow">
-              <div class="personKey">Phone:</div>
+              <div class="personKey">Phone</div>
               <div class="personVal">${escapeHtml(p.phone)}</div>
             </div>` : ``}
           </div>
 
           <div class="personContactBox" style="margin-top:12px;">
-            <div class="muted" style="font-weight:700; letter-spacing:.2px;">Want general support?</div>
+            <div class="muted" style="font-weight:800; letter-spacing:.18px;">Want general support?</div>
 
             <div class="personContactRow">
-              <div class="personKey">Support Phone:</div>
+              <div class="personKey">Support Phone</div>
               <div class="personVal">${escapeHtml(SUPPORT.phone)}</div>
             </div>
 
             <div class="personContactRow">
-              <div class="personKey">Support Email:</div>
+              <div class="personKey">Support Email</div>
               <div class="personVal">${escapeHtml(SUPPORT.email)}</div>
             </div>
           </div>
@@ -258,11 +164,7 @@
     show(modal);
   }
 
-  function closePersonModal() {
-    const modal = $("#personModal");
-    if (!modal) return;
-    hide(modal);
-  }
+  function closePersonModal() { const modal = $("#personModal"); if (modal) hide(modal); }
 
   function openDetailModal(titleText, html) {
     const modal = $("#detailModal");
@@ -272,23 +174,20 @@
     show(modal);
   }
 
-  function closeDetailModal() {
-    const modal = $("#detailModal");
-    if (!modal) return;
-    hide(modal);
+  function closeDetailModal() { const modal = $("#detailModal"); if (modal) hide(modal); }
+
+  function openPolicyModal() {
+    const tpl = $("#policyTemplate");
+    if (!tpl) return;
+    openDetailModal("Cancellation Policy", tpl.innerHTML);
   }
 
   // ====== ADMIN AUTH ======
   async function adminLogin(email, password) {
     setStatus($("#adminStatus"), "Signing in...", "");
 
-    const data = await apiCall({
-      action: ACTIONS.LOGIN,
-      email,
-      password
-    });
+    const data = await apiCall({ action: ACTIONS.LOGIN, email, password });
 
-    // GAS returns: { ok:true, token, admin:{name,email,role,canViewLogs} }
     state.admin.authed = true;
     state.admin.token = data.token || "";
     state.admin.admin = data.admin || null;
@@ -297,15 +196,15 @@
 
     $("#adminLoginView").style.display = "none";
     $("#adminDashView").style.display = "";
-    setStatus($("#adminStatus"), "", "");
 
     const logsCard = $("#logsCard");
     if (logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
+
+    setStatus($("#adminStatus"), "", "");
   }
 
   async function adminLogout() {
-    // Your GAS doesn't have an explicit logout handler.
-    // We'll log it via logAction (optional), then clear session client-side.
+    // GAS has no explicit logout endpoint; clear client session
     try {
       if (state.admin.authed && state.admin.token) {
         await apiCall({
@@ -315,23 +214,29 @@
           details: { message: "Admin logged out (client-side)" }
         });
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     state.admin.authed = false;
     state.admin.token = "";
     state.admin.admin = null;
     state.admin.lastLogs = [];
 
+    // Reset dashboard UI
     $("#adminLoginView").style.display = "";
     $("#adminDashView").style.display = "none";
 
     setStatus($("#filesStatus"), "", "");
     setStatus($("#logsStatus"), "", "");
+    setStatus($("#welcomeStatus"), "", "");
 
-    $("#filesTbody").innerHTML = `<tr><td colspan="3" class="muted">No results yet.</td></tr>`;
-    $("#logsTbody").innerHTML = `<tr><td colspan="4" class="muted">No logs loaded.</td></tr>`;
+    const ft = $("#filesTbody");
+    if (ft) ft.innerHTML = `<tr><td colspan="3" class="muted">No results yet.</td></tr>`;
+    const lt = $("#logsTbody");
+    if (lt) lt.innerHTML = `<tr><td colspan="4" class="muted">No logs loaded.</td></tr>`;
+
+    // Close admin modal + go back to top/home
+    closeAdminModal();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // ====== ADMIN FILES ======
@@ -349,7 +254,6 @@
       const name = escapeHtml(f.name || "");
       const created = escapeHtml(f.created || "");
       const url = escapeHtml(f.url || "");
-
       return `
         <tr>
           <td>${name}</td>
@@ -386,18 +290,11 @@
 
   async function deleteFile(fileId, fileName) {
     if (!state.admin.authed) return;
-
-    const ok = confirm(`Delete this file?\n\n${fileName || fileId}`);
-    if (!ok) return;
+    if (!confirm(`Delete this file?\n\n${fileName || fileId}`)) return;
 
     setStatus($("#filesStatus"), "Deleting...", "");
 
-    await apiCall({
-      action: ACTIONS.DELETE_FILE,
-      token: state.admin.token,
-      fileId
-    });
-
+    await apiCall({ action: ACTIONS.DELETE_FILE, token: state.admin.token, fileId });
     setStatus($("#filesStatus"), "File deleted.", "ok");
     await listFiles();
   }
@@ -415,11 +312,10 @@
     state.admin.lastLogs = logs;
 
     tbody.innerHTML = logs.map((l, idx) => {
-      const ts = formatTs(l.timestamp);
+      const ts = escapeHtml(l.timestamp || "");
       const adminEmail = escapeHtml(l.adminEmail || "");
       const actionType = escapeHtml(l.actionType || "");
       const details = escapeHtml(l.details || "");
-
       const summary = details.length > 80 ? details.slice(0, 80) + "…" : details;
 
       return `
@@ -444,14 +340,7 @@
     const adminEmail = $("#logEmailContains")?.value?.trim() || "";
     const actionType = $("#logActionType")?.value || "ALL";
 
-    const payload = {
-      action: ACTIONS.LIST_LOGS,
-      token: state.admin.token,
-      fromDate,
-      toDate
-    };
-
-    // GAS: if filterActionType is set, it checks exact match, so we only pass if not ALL
+    const payload = { action: ACTIONS.LIST_LOGS, token: state.admin.token, fromDate, toDate };
     if (adminEmail) payload.adminEmail = adminEmail;
     if (actionType && actionType !== "ALL") payload.actionType = actionType;
 
@@ -466,19 +355,51 @@
     if (!l) return;
 
     const html = `
-      <div class="personContactBox">
-        <div class="personContactRow"><div class="personKey">Timestamp:</div><div class="personVal">${escapeHtml(l.timestamp || "")}</div></div>
-        <div class="personContactRow"><div class="personKey">Admin:</div><div class="personVal">${escapeHtml(l.adminEmail || "")}</div></div>
-        <div class="personContactRow"><div class="personKey">Action:</div><div class="personVal">${escapeHtml(l.actionType || "")}</div></div>
-      </div>
-
-      <div class="personContactBox" style="margin-top:12px;">
-        <div class="muted" style="font-weight:700;">Details</div>
-        <pre style="margin:10px 0 0; white-space:pre-wrap; color:rgba(232,238,252,.92); font-size:12px;">${escapeHtml(l.details || "")}</pre>
+      <div class="doc">
+        <p class="muted" style="margin:0 0 8px;">Log details</p>
+        <div style="display:grid; gap:10px;">
+          <div><b>Timestamp:</b> ${escapeHtml(l.timestamp || "")}</div>
+          <div><b>Admin:</b> ${escapeHtml(l.adminEmail || "")}</div>
+          <div><b>Action:</b> ${escapeHtml(l.actionType || "")}</div>
+          <div style="margin-top:8px;"><b>Details:</b></div>
+          <pre style="white-space:pre-wrap; margin:0; color:rgba(235,242,255,.88);">${escapeHtml(l.details || "")}</pre>
+        </div>
       </div>
     `;
-
     openDetailModal("Log Details", html);
+  }
+
+  // ====== WELCOME EMAIL ======
+  async function sendWelcomeEmail() {
+    if (!state.admin.authed) return;
+
+    const to = $("#welcomeTo")?.value?.trim() || "";
+    const customerName = $("#welcomeCustomer")?.value?.trim() || "";
+    const companyName = $("#welcomeCompany")?.value?.trim() || "";
+
+    if (!to || !customerName || !companyName) {
+      setStatus($("#welcomeStatus"), "Please enter recipient email, customer name, and company name.", "err");
+      return;
+    }
+
+    setStatus($("#welcomeStatus"), "Sending...", "");
+
+    try {
+      const data = await apiCall({
+        action: ACTIONS.SEND_WELCOME,
+        token: state.admin.token,
+        to,
+        customerName,
+        companyName
+      });
+
+      setStatus($("#welcomeStatus"), data.message || "Welcome email sent.", "ok");
+      $("#welcomeTo").value = "";
+      $("#welcomeCustomer").value = "";
+      $("#welcomeCompany").value = "";
+    } catch (e) {
+      setStatus($("#welcomeStatus"), `Send failed. ${e.message || ""}`.trim(), "err");
+    }
   }
 
   // ====== FORM SUBMIT ======
@@ -486,8 +407,7 @@
     const statusEl = $("#status");
     setStatus(statusEl, "Submitting...", "");
 
-    const accept = $("#acceptPolicy");
-    $("#acceptPolicyValue").value = accept && accept.checked ? "Yes" : "No";
+    $("#acceptPolicyValue").value = $("#acceptPolicy")?.checked ? "Yes" : "No";
 
     const fd = new FormData(formEl);
     const payload = { action: ACTIONS.SUBMIT_FORM };
@@ -503,13 +423,10 @@
     }
   }
 
-  // ====== INIT / BIND ======
+  // ====== INIT ======
   function bind() {
     // Admin open/close
-    $("#openAdminBtn")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      openAdminModal();
-    });
+    $("#openAdminBtn")?.addEventListener("click", (e) => { e.preventDefault(); openAdminModal(); });
     $("#closeAdminBtn")?.addEventListener("click", closeAdminModal);
 
     // Person modal close
@@ -518,14 +435,14 @@
     // Detail modal close
     $("#closeDetailBtn")?.addEventListener("click", closeDetailModal);
 
-    // Click outside modal closes
+    // Click outside closes
     $$(".modalBackdrop").forEach(backdrop => {
       backdrop.addEventListener("click", (ev) => {
         if (ev.target === backdrop) hide(backdrop);
       });
     });
 
-    // Delegated clicks: person cards + admin table actions + log row details
+    // Delegated clicks (person cards + admin table + logs)
     document.addEventListener("click", (ev) => {
       const personBtn = ev.target.closest(".personBtn");
       if (personBtn) {
@@ -545,14 +462,12 @@
         if (url) window.open(url, "_blank", "noopener,noreferrer");
         return;
       }
-
       if (act === "deleteFile") {
         const id = actBtn.getAttribute("data-id");
         const name = actBtn.getAttribute("data-name");
         if (id) deleteFile(id, name);
         return;
       }
-
       if (act === "openLogDetail") {
         const idx = Number(actBtn.getAttribute("data-idx"));
         openLogDetail(idx);
@@ -581,7 +496,7 @@
 
     $("#adminLogoutBtn")?.addEventListener("click", adminLogout);
 
-    // Toggle date filters
+    // Search toggle date filter
     $("#toggleDateFilterBtn")?.addEventListener("click", () => {
       const wrap = $("#dateFilterWrap");
       if (!wrap) return;
@@ -590,7 +505,7 @@
       $("#toggleDateFilterBtn").textContent = isOpen ? "Search by date too?" : "Hide date filter";
     });
 
-    // Files search
+    // Search files
     $("#searchFilesBtn")?.addEventListener("click", async () => {
       try { await listFiles(); }
       catch (err) { setStatus($("#filesStatus"), `Search failed. ${err.message || ""}`.trim(), "err"); }
@@ -602,11 +517,11 @@
       catch (err) { setStatus($("#logsStatus"), `Load failed. ${err.message || ""}`.trim(), "err"); }
     });
 
-    // Policy jump
-    $("#openPolicyBtn")?.addEventListener("click", () => {
-      const el = $("#policyBottom");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    // Welcome email
+    $("#sendWelcomeBtn")?.addEventListener("click", sendWelcomeEmail);
+
+    // Policy popup
+    $("#openPolicyBtn")?.addEventListener("click", () => openPolicyModal());
 
     // Form submit + clear
     const form = $("#deploymentForm");
