@@ -1,417 +1,729 @@
-(() => {
-  "use strict";
+/* =========================================================
+   SmartFits Customer Onboarding — app.js (FULL FILE)
+   ========================================================= */
 
-  const GAS_URL =
-    "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
+/** 🔧 Your Google Apps Script Web App URL (ends with /exec) */
+const GAS_URL =
+  "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
-  const ACTIONS = {
-    SUBMIT_FORM: "submitForm",
-    LOGIN: "adminLogin",
-    LIST_FILES: "listFiles",
-    DELETE_FILE: "deleteFile",
-    LIST_LOGS: "listLogs",
-    LOG_ACTION: "logAction",
-    SEND_WELCOME: "sendWelcomeEmail"
-  };
+/** -------------------------
+ *  Helpers
+ * ------------------------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  const SUPPORT = { phone: "01283 533330", email: "support@smartfits.co.uk" };
+function setText(el, text) {
+  if (!el) return;
+  el.textContent = text ?? "";
+}
 
-  const PEOPLE = {
-    tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "07894 880559", img: "./images/tara_hassall.png" },
-    charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
-    emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", img: "./images/emma_sumner.png" },
-    kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "kelly@smartfits.co.uk", img: "./images/kelly_mullen.png" },
-    aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "aleks@smartfits.co.uk", img: "./images/aleks_fossick.png" },
-    roz: { name: "Roz Hardwick", role: "Operations Lead", email: "roz@smartfits.co.uk", img: "./images/roz_hardwick.png" },
-    ellie: { name: "Ellie Topliss", role: "Project Coordinator", email: "ellie@smartfits.co.uk", img: "./images/ellie_topliss.png" },
-    sophie: { name: "Sophie Turner", role: "Project Coordinator", email: "sophie@smartfits.co.uk", img: "./images/sophie_turner.png" },
-    amanda: { name: "Amanda Clarke", role: "Field Operations Team Member", email: "amanda@smartfits.co.uk", img: "./images/amanda_clarke.png" },
-    rosie: { name: "Rosie Smart", role: "Field Operations Team Member", email: "rosie@smartfits.co.uk", img: "./images/rosie_smart.png" },
-    bridie: { name: "Bridie Southam", role: "Field Operations Team Member", email: "bridie@smartfits.co.uk", img: "./images/bridie_southam.png" },
-    kasia: { name: "Kasia Dzielak", role: "Field Operations Team Member", email: "kasia@smartfits.co.uk", img: "./images/kasia_dzielak.png" }
-  };
+function setHtml(el, html) {
+  if (!el) return;
+  el.innerHTML = html ?? "";
+}
 
-  const $ = (sel, root = document) => root.querySelector(sel);
+function escHtml(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-  const state = {
-    admin: { authed: false, token: "", admin: null, lastLogs: [] }
-  };
+/** -------------------------
+ *  Modal manager (prevents freeze)
+ * ------------------------- */
+let scrollYBeforeLock = 0;
+let openModalCount = 0;
 
-  function show(el){
-    if(!el) return;
-    el.classList.add("show");
-    el.setAttribute("aria-hidden","false");
-    document.body.classList.add("modalOpen"); // ✅ lock background scroll
+function lockBodyScroll() {
+  // Use position fixed lock (prevents "frozen without visible modal" bugs)
+  if (document.body.classList.contains("modalOpen")) return;
+
+  scrollYBeforeLock = window.scrollY || document.documentElement.scrollTop || 0;
+
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollYBeforeLock}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+
+  document.body.classList.add("modalOpen");
+}
+
+function unlockBodyScroll() {
+  if (!document.body.classList.contains("modalOpen")) return;
+
+  document.body.classList.remove("modalOpen");
+
+  // Remove fixed lock styles
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+
+  // Restore scroll
+  window.scrollTo(0, scrollYBeforeLock);
+}
+
+function openModal(backdropEl) {
+  if (!backdropEl) return;
+
+  // Actually show the modal FIRST
+  backdropEl.classList.add("isOpen");
+  backdropEl.setAttribute("aria-hidden", "false");
+
+  // Then lock scroll (next frame = avoids "freeze, no modal")
+  requestAnimationFrame(() => {
+    openModalCount++;
+    lockBodyScroll();
+  });
+}
+
+function closeModal(backdropEl) {
+  if (!backdropEl) return;
+
+  backdropEl.classList.remove("isOpen");
+  backdropEl.setAttribute("aria-hidden", "true");
+
+  openModalCount = Math.max(0, openModalCount - 1);
+  if (openModalCount === 0) unlockBodyScroll();
+}
+
+function closeAllModals() {
+  $$(".modalBackdrop.isOpen").forEach((b) => closeModal(b));
+  openModalCount = 0;
+  unlockBodyScroll();
+}
+
+/** Close modal when clicking backdrop (outside panel) */
+function bindBackdropClose(backdropEl, closeBtnEl) {
+  if (!backdropEl) return;
+
+  backdropEl.addEventListener("mousedown", (e) => {
+    // only close if user clicked the backdrop, not inside the modal panel
+    if (e.target === backdropEl) closeModal(backdropEl);
+  });
+
+  if (closeBtnEl) {
+    closeBtnEl.addEventListener("click", () => closeModal(backdropEl));
+  }
+}
+
+/** Escape key closes top-most open modal */
+function bindEscapeKey() {
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const openBackdrops = $$(".modalBackdrop.isOpen");
+    if (!openBackdrops.length) return;
+    closeModal(openBackdrops[openBackdrops.length - 1]);
+  });
+}
+
+/** -------------------------
+ *  API helpers (GAS expects JSON)
+ * ------------------------- */
+async function postToGAS(payload) {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }, // ✅ required for your doPost JSON.parse
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+
+  // GAS may return JSON; if not, show helpful error
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (err) {
+    throw new Error(`Server did not return JSON: ${text.slice(0, 140)}...`);
   }
 
-  function hide(el){
-    if(!el) return;
-    el.classList.remove("show");
-    el.setAttribute("aria-hidden","true");
-
-    // ✅ if no other modals are open, re-enable scroll
-    const anyOpen = !!document.querySelector(".modalBackdrop.show");
-    if(!anyOpen) document.body.classList.remove("modalOpen");
+  if (!json.ok) {
+    throw new Error(json.error || "Request failed.");
   }
+  return json;
+}
 
-  function setStatus(el, msg, type){
-    if(!el) return;
-    el.textContent = msg || "";
-    el.classList.remove("ok","err");
-    if(type === "ok") el.classList.add("ok");
-    if(type === "err") el.classList.add("err");
-  }
+/** -------------------------
+ *  Team data (popup content)
+ * ------------------------- */
+const TEAM = {
+  tara: {
+    name: "Tara Hassall",
+    role: "Managing Director",
+    email: "tara@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/tara_hassall.png",
+  },
+  charlie: {
+    name: "Charlie Inger",
+    role: "Sales & Business Development Manager",
+    email: "charlie@smartfits.co.uk",
+    phone: "07385 099620",
+    img: "./images/charlie_inger.png",
+  },
+  emma: {
+    name: "Emma Sumner",
+    role: "Customer Success Team Leader",
+    email: "emma@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/emma_sumner.png",
+  },
+  kelly: {
+    name: "Kelly Mullen",
+    role: "Customer Success Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/kelly_mullen.png",
+  },
+  aleks: {
+    name: "Aleks Fossick",
+    role: "Customer Success Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/aleks_fossick.png",
+  },
+  roz: {
+    name: "Roz Hardwick",
+    role: "Operations Lead",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/roz_hardwick.png",
+  },
+  ellie: {
+    name: "Ellie Topliss",
+    role: "Project Coordinator",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/ellie_topliss.png",
+  },
+  sophie: {
+    name: "Sophie Turner",
+    role: "Project Coordinator",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/sophie_turner.png",
+  },
+  amanda: {
+    name: "Amanda Clarke",
+    role: "Field Operations Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/amanda_clarke.png",
+  },
+  rosie: {
+    name: "Rosie Smart",
+    role: "Field Operations Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/rosie_smart.png",
+  },
+  bridie: {
+    name: "Bridie Southam",
+    role: "Field Operations Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/bridie_southam.png",
+  },
+  kasia: {
+    name: "Kasia Dzielak",
+    role: "Field Operations Team Member",
+    email: "support@smartfits.co.uk",
+    phone: "01283 533330",
+    img: "./images/kasia_dzielak.png",
+  },
+};
 
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
+/** -------------------------
+ *  Person modal
+ * ------------------------- */
+function showPerson(personKey) {
+  const data = TEAM[personKey];
+  if (!data) return;
 
-  async function apiCall(payloadObj){
-    const body = JSON.stringify(payloadObj || {});
-    const res = await fetch(GAS_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body
-    });
+  const personModal = $("#personModal");
+  const body = $("#personBody");
 
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch { throw new Error("Server did not return valid JSON."); }
+  if (!personModal || !body) return;
 
-    if(!data || data.ok !== true) throw new Error(data?.error || "Request failed.");
-    return data;
-  }
+  setHtml(
+    body,
+    `
+    <img class="personModalImg" src="${escHtml(data.img)}" alt="${escHtml(
+      data.name
+    )}">
+    <div class="personMeta">
+      <h3>${escHtml(data.name)}</h3>
+      <p class="role">${escHtml(data.role)}</p>
 
-  // ---------- Modals ----------
-  function openAdminModal(){
-    const modal = $("#adminModal");
-    if(!modal) return;
-
-    if(!state.admin.authed){
-      $("#adminLoginView").style.display = "";
-      $("#adminDashView").style.display = "none";
-      setStatus($("#adminStatus"), "", "");
-    }else{
-      $("#adminLoginView").style.display = "none";
-      $("#adminDashView").style.display = "";
-      $("#adminSignedInAs").textContent = `Signed in as ${state.admin.admin?.email || ""}`;
-      const logsCard = $("#logsCard");
-      if(logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
-    }
-
-    show(modal);
-  }
-
-  function closeAdminModal(){ hide($("#adminModal")); }
-  function closePersonModal(){ hide($("#personModal")); }
-  function closeDetailModal(){
-    // reset modal size back to normal after policy
-    const panel = $("#detailModalPanel");
-    if(panel){
-      panel.classList.remove("modalWide");
-      panel.classList.add("modalMedium");
-    }
-    hide($("#detailModal"));
-  }
-
-  function openDetailModal(titleText, html, opts = {}){
-    $("#detailTitle").textContent = titleText || "Details";
-    $("#detailBody").innerHTML = html || "";
-
-    // ✅ make policy popup wider
-    const panel = $("#detailModalPanel");
-    if(panel){
-      panel.classList.remove("modalWide","modalMedium");
-      panel.classList.add(opts.wide ? "modalWide" : "modalMedium");
-    }
-
-    show($("#detailModal"));
-  }
-
-  function openPolicyModal(){
-    const tpl = $("#policyTemplate");
-    openDetailModal("Cancellation Policy", tpl ? tpl.innerHTML : "<div class='doc'>Policy not found.</div>", { wide:true });
-  }
-
-  function openPersonModal(key){
-    const p = PEOPLE[key];
-    if(!p) return;
-
-    const body = $("#personBody");
-    $("#personTitle").textContent = "Team Member";
-
-    body.innerHTML = `
-      <div class="personModalGrid">
-        <img class="personModalPhoto" src="${escapeHtml(p.img)}" alt="${escapeHtml(p.name)}"/>
-        <div>
-          <div class="personModalName">${escapeHtml(p.name)}</div>
-          <div class="personModalRole">${escapeHtml(p.role)}</div>
-
-          <div class="personContactBox">
-            <div class="muted" style="font-weight:800; letter-spacing:.18px;">Contact details</div>
-
-            <div class="personContactRow">
-              <div class="personKey">Email</div>
-              <div class="personVal">${escapeHtml(p.email)}</div>
-            </div>
-
-            ${p.phone ? `
-              <div class="personContactRow">
-                <div class="personKey">Phone</div>
-                <div class="personVal">${escapeHtml(p.phone)}</div>
-              </div>
-            ` : ``}
-          </div>
-
-          <div class="personContactBox" style="margin-top:12px;">
-            <div class="muted" style="font-weight:800; letter-spacing:.18px;">Want general support?</div>
-
-            <div class="personContactRow">
-              <div class="personKey">Support Phone</div>
-              <div class="personVal">${escapeHtml(SUPPORT.phone)}</div>
-            </div>
-
-            <div class="personContactRow">
-              <div class="personKey">Support Email</div>
-              <div class="personVal">${escapeHtml(SUPPORT.email)}</div>
-            </div>
-          </div>
+      <div class="metaBlock">
+        <div class="metaLine"><span class="metaLabel">Email:</span>
+          <a href="mailto:${escHtml(data.email)}">${escHtml(data.email)}</a>
+        </div>
+        <div class="metaLine"><span class="metaLabel">Phone:</span>
+          <span class="metaValue">${escHtml(data.phone)}</span>
         </div>
       </div>
-    `;
 
-    show($("#personModal"));
+      <div class="metaBlock">
+        <div class="metaLine"><span class="metaLabel">Support:</span>
+          <span class="metaValue">01283 533330</span>
+        </div>
+        <div class="metaLine"><span class="metaLabel">Email:</span>
+          <a href="mailto:support@smartfits.co.uk">support@smartfits.co.uk</a>
+        </div>
+      </div>
+    </div>
+  `
+  );
+
+  openModal(personModal);
+}
+
+/** -------------------------
+ *  Policy modal (detail modal)
+ * ------------------------- */
+function showPolicyPopup() {
+  const detailModal = $("#detailModal");
+  const detailBody = $("#detailBody");
+  const detailTitle = $("#detailTitle");
+  const tpl = $("#policyTemplate");
+
+  if (!detailModal || !detailBody || !tpl) return;
+
+  setText(detailTitle, "Cancellation Policy");
+  const node = tpl.content.cloneNode(true);
+  detailBody.innerHTML = "";
+  detailBody.appendChild(node);
+
+  // Make it wider if you want (optional):
+  const panel = $("#detailModalPanel");
+  if (panel) panel.classList.add("wide"); // CSS uses .modal.wide
+  openModal(detailModal);
+}
+
+/** -------------------------
+ *  Form handling
+ * ------------------------- */
+function bindForm() {
+  const form = $("#deploymentForm");
+  const status = $("#status");
+  const clearBtn = $("#clearBtn");
+  const acceptPolicy = $("#acceptPolicy");
+  const acceptPolicyValue = $("#acceptPolicyValue");
+
+  if (!form) return;
+
+  if (acceptPolicy && acceptPolicyValue) {
+    acceptPolicy.addEventListener("change", () => {
+      acceptPolicyValue.value = acceptPolicy.checked ? "Yes" : "No";
+    });
   }
 
-  // ---------- Admin ----------
-  async function adminLogin(email, password){
-    setStatus($("#adminStatus"), "Signing in...", "");
-
-    const data = await apiCall({ action: ACTIONS.LOGIN, email, password });
-
-    state.admin.authed = true;
-    state.admin.token = data.token || "";
-    state.admin.admin = data.admin || null;
-
-    $("#adminLoginView").style.display = "none";
-    $("#adminDashView").style.display = "";
-    $("#adminSignedInAs").textContent = `Signed in as ${state.admin.admin?.email || email}`;
-
-    const logsCard = $("#logsCard");
-    if(logsCard) logsCard.style.display = state.admin.admin?.canViewLogs ? "" : "none";
-    setStatus($("#adminStatus"), "", "");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      form.reset();
+      if (acceptPolicyValue) acceptPolicyValue.value = "No";
+      setText(status, "");
+    });
   }
 
-  async function adminLogout(){
-    try{
-      if(state.admin.authed && state.admin.token){
-        await apiCall({
-          action: ACTIONS.LOG_ACTION,
-          token: state.admin.token,
-          actionType: "LOGOUT",
-          details: { message: "Admin logged out" }
-        });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setText(status, "Submitting...");
+
+    const data = Object.fromEntries(new FormData(form).entries());
+    data.acceptPolicyValue =
+      (acceptPolicy && acceptPolicy.checked) || data.acceptPolicyValue === "Yes"
+        ? "Yes"
+        : "No";
+
+    try {
+      await postToGAS({ action: "submitForm", ...data });
+      setText(
+        status,
+        "✅ Submitted successfully. Thank you — we’ll be in touch shortly."
+      );
+      form.reset();
+      if (acceptPolicyValue) acceptPolicyValue.value = "No";
+    } catch (err) {
+      setText(status, `❌ ${err.message}`);
+    }
+  });
+}
+
+/** -------------------------
+ *  Admin dashboard (login + actions)
+ * ------------------------- */
+let adminToken = null;
+let adminInfo = null;
+
+function setAdminView(isAuthed) {
+  const loginView = $("#adminLoginView");
+  const dashView = $("#adminDashView");
+  const signedInAs = $("#adminSignedInAs");
+  const logsCard = $("#logsCard");
+
+  if (loginView) loginView.style.display = isAuthed ? "none" : "block";
+  if (dashView) dashView.style.display = isAuthed ? "block" : "none";
+
+  if (signedInAs) {
+    if (isAuthed && adminInfo) {
+      signedInAs.textContent = `Signed in as: ${adminInfo.name} (${adminInfo.email})`;
+    } else {
+      signedInAs.textContent = "";
+    }
+  }
+
+  if (logsCard) {
+    if (isAuthed && adminInfo && adminInfo.canViewLogs) {
+      logsCard.style.display = "block";
+    } else {
+      logsCard.style.display = "none";
+    }
+  }
+}
+
+function bindAdmin() {
+  const adminModal = $("#adminModal");
+  const openAdminBtn = $("#openAdminBtn");
+  const closeAdminBtn = $("#closeAdminBtn");
+  const logoutBtn = $("#adminLogoutBtn");
+
+  const loginForm = $("#adminLoginForm");
+  const adminStatus = $("#adminStatus");
+  const adminClearBtn = $("#adminClearBtn");
+
+  const searchFilesBtn = $("#searchFilesBtn");
+  const fileNameQuery = $("#fileNameQuery");
+  const dateFrom = $("#dateFrom");
+  const dateTo = $("#dateTo");
+  const filesStatus = $("#filesStatus");
+  const filesTbody = $("#filesTbody");
+  const toggleDateFilterBtn = $("#toggleDateFilterBtn");
+  const dateFilterWrap = $("#dateFilterWrap");
+
+  const sendWelcomeBtn = $("#sendWelcomeBtn");
+  const welcomeTo = $("#welcomeTo");
+  const welcomeCustomer = $("#welcomeCustomer");
+  const welcomeCompany = $("#welcomeCompany");
+  const welcomeStatus = $("#welcomeStatus");
+
+  const loadLogsBtn = $("#loadLogsBtn");
+  const logsTbody = $("#logsTbody");
+  const logsStatus = $("#logsStatus");
+  const logFrom = $("#logFrom");
+  const logTo = $("#logTo");
+  const logEmailContains = $("#logEmailContains");
+  const logActionType = $("#logActionType");
+
+  if (!adminModal) return;
+
+  // Bind backdrop close
+  bindBackdropClose(adminModal, closeAdminBtn);
+
+  // Open admin modal
+  if (openAdminBtn) {
+    openAdminBtn.addEventListener("click", () => {
+      try {
+        // ensure it actually opens
+        openModal(adminModal);
+        setAdminView(!!adminToken);
+        setText(adminStatus, "");
+      } catch (err) {
+        // if something goes wrong, never leave the page frozen
+        unlockBodyScroll();
+        console.error(err);
       }
-    }catch{}
-
-    state.admin.authed = false;
-    state.admin.token = "";
-    state.admin.admin = null;
-    state.admin.lastLogs = [];
-
-    $("#adminLoginView").style.display = "";
-    $("#adminDashView").style.display = "none";
-
-    closeAdminModal();
-    window.scrollTo({ top:0, behavior:"smooth" });
-  }
-
-  function renderFiles(files){
-    const tbody = $("#filesTbody");
-    if(!tbody) return;
-
-    if(!files || !files.length){
-      tbody.innerHTML = `<tr><td colspan="3" class="muted">No matching files found.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = files.map(f => `
-      <tr>
-        <td>${escapeHtml(f.name || "")}</td>
-        <td>${escapeHtml(f.created || "")}</td>
-        <td>
-          ${f.url ? `<button class="adminLink" data-act="openUrl" data-url="${escapeHtml(f.url)}">View</button>` : ""}
-          <button class="adminDanger" data-act="deleteFile" data-id="${escapeHtml(f.id)}" data-name="${escapeHtml(f.name)}">Delete</button>
-        </td>
-      </tr>
-    `).join("");
-  }
-
-  async function listFiles(){
-    setStatus($("#filesStatus"), "Searching...", "");
-
-    const query = $("#fileNameQuery")?.value?.trim() || "";
-    const fromDate = $("#dateFrom")?.value || "";
-    const toDate = $("#dateTo")?.value || "";
-
-    const data = await apiCall({
-      action: ACTIONS.LIST_FILES,
-      token: state.admin.token,
-      query, fromDate, toDate
     });
-
-    renderFiles(data.files || []);
-    setStatus($("#filesStatus"), `Found ${(data.files || []).length} file(s).`, "ok");
   }
 
-  async function deleteFile(fileId, fileName){
-    if(!confirm(`Delete this file?\n\n${fileName || fileId}`)) return;
-    setStatus($("#filesStatus"), "Deleting...", "");
-    await apiCall({ action: ACTIONS.DELETE_FILE, token: state.admin.token, fileId });
-    setStatus($("#filesStatus"), "File deleted.", "ok");
-    await listFiles();
-  }
-
-  async function sendWelcomeEmail(){
-    const to = $("#welcomeTo")?.value?.trim() || "";
-    const customerName = $("#welcomeCustomer")?.value?.trim() || "";
-    const companyName = $("#welcomeCompany")?.value?.trim() || "";
-
-    if(!to || !customerName || !companyName){
-      setStatus($("#welcomeStatus"), "Please enter recipient email, customer name, and company name.", "err");
-      return;
-    }
-
-    setStatus($("#welcomeStatus"), "Sending...", "");
-    const data = await apiCall({
-      action: ACTIONS.SEND_WELCOME,
-      token: state.admin.token,
-      to, customerName, companyName
+  // Login clear
+  if (adminClearBtn && loginForm) {
+    adminClearBtn.addEventListener("click", () => {
+      loginForm.reset();
+      setText(adminStatus, "");
     });
-
-    setStatus($("#welcomeStatus"), data.message || "Welcome email sent.", "ok");
-    $("#welcomeTo").value = "";
-    $("#welcomeCustomer").value = "";
-    $("#welcomeCompany").value = "";
   }
 
-  // ---------- Form ----------
-  async function submitDeploymentForm(formEl){
-    setStatus($("#status"), "Submitting...", "");
-
-    $("#acceptPolicyValue").value = $("#acceptPolicy")?.checked ? "Yes" : "No";
-
-    const fd = new FormData(formEl);
-    const payload = { action: ACTIONS.SUBMIT_FORM };
-    fd.forEach((v,k)=> payload[k] = String(v ?? ""));
-
-    await apiCall(payload);
-    setStatus($("#status"), "Submitted successfully. Thank you for the business.", "ok");
-    formEl.reset();
-    $("#acceptPolicyValue").value = "No";
-  }
-
-  // ---------- Bind ----------
-  function bind(){
-    $("#openAdminBtn")?.addEventListener("click", (e)=>{ e.preventDefault(); openAdminModal(); });
-    $("#closeAdminBtn")?.addEventListener("click", closeAdminModal);
-    $("#adminLogoutBtn")?.addEventListener("click", adminLogout);
-
-    $("#closePersonBtn")?.addEventListener("click", closePersonModal);
-    $("#closeDetailBtn")?.addEventListener("click", closeDetailModal);
-
-    // Click outside closes modal
-    document.querySelectorAll(".modalBackdrop").forEach(backdrop => {
-      backdrop.addEventListener("click", (ev) => { if(ev.target === backdrop) hide(backdrop); });
-    });
-
-    // ✅ Policy popup buttons (both places)
-    $("#openPolicyBtn")?.addEventListener("click", (e)=>{ e.preventDefault(); openPolicyModal(); });
-    $("#openPolicyBtn2")?.addEventListener("click", (e)=>{ e.preventDefault(); openPolicyModal(); });
-
-    // Admin login
-    $("#adminLoginForm")?.addEventListener("submit", async (e)=>{
+  // Login submit
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = ($("#adminEmail")?.value || "").trim().toLowerCase();
-      const pass = $("#adminPassword")?.value || "";
-      try{
-        await adminLogin(email, pass);
-      }catch(err){
-        setStatus($("#adminStatus"), `Login failed. ${err.message || ""}`.trim(), "err");
-      }
-    });
+      setText(adminStatus, "Signing in...");
 
-    $("#adminClearBtn")?.addEventListener("click", ()=>{
-      $("#adminEmail").value = "";
-      $("#adminPassword").value = "";
-      setStatus($("#adminStatus"), "", "");
-    });
+      const email = $("#adminEmail")?.value?.trim() || "";
+      const password = $("#adminPassword")?.value || "";
 
-    $("#toggleDateFilterBtn")?.addEventListener("click", ()=>{
-      const wrap = $("#dateFilterWrap");
-      const open = wrap.style.display !== "none";
-      wrap.style.display = open ? "none" : "";
-      $("#toggleDateFilterBtn").textContent = open ? "Search by date too?" : "Hide date filter";
-    });
+      try {
+        const json = await postToGAS({ action: "adminLogin", email, password });
+        adminToken = json.token;
+        adminInfo = json.admin;
+        setText(adminStatus, "✅ Signed in.");
+        setAdminView(true);
 
-    $("#searchFilesBtn")?.addEventListener("click", async ()=>{
-      try{ await listFiles(); }catch(err){ setStatus($("#filesStatus"), `Search failed. ${err.message || ""}`.trim(), "err"); }
-    });
-
-    $("#sendWelcomeBtn")?.addEventListener("click", async ()=>{
-      try{ await sendWelcomeEmail(); }catch(err){ setStatus($("#welcomeStatus"), `Send failed. ${err.message || ""}`.trim(), "err"); }
-    });
-
-    // Form
-    const form = $("#deploymentForm");
-    if(form){
-      $("#clearBtn")?.addEventListener("click", ()=>{
-        form.reset();
-        $("#acceptPolicyValue").value = "No";
-        setStatus($("#status"), "", "");
-      });
-
-      $("#acceptPolicy")?.addEventListener("change", ()=>{
-        $("#acceptPolicyValue").value = $("#acceptPolicy").checked ? "Yes" : "No";
-      });
-
-      form.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        try{ await submitDeploymentForm(form); }
-        catch(err){ setStatus($("#status"), `Submit failed. ${err.message || ""}`.trim(), "err"); }
-      });
-    }
-
-    // Delegated clicks
-    document.addEventListener("click", (ev)=>{
-      const personBtn = ev.target.closest(".personBtn");
-      if(personBtn){
-        ev.preventDefault();
-        openPersonModal(personBtn.getAttribute("data-person"));
-        return;
-      }
-
-      const actBtn = ev.target.closest("[data-act]");
-      if(!actBtn) return;
-
-      const act = actBtn.getAttribute("data-act");
-      if(act === "openUrl"){
-        const url = actBtn.getAttribute("data-url");
-        if(url) window.open(url, "_blank", "noopener,noreferrer");
-        return;
-      }
-      if(act === "deleteFile"){
-        deleteFile(actBtn.getAttribute("data-id"), actBtn.getAttribute("data-name"));
-        return;
+        // Log action (optional)
+        await postToGAS({
+          action: "logAction",
+          token: adminToken,
+          actionType: "LOGIN",
+          details: { message: "Admin logged in" },
+        });
+      } catch (err) {
+        setText(adminStatus, `❌ ${err.message}`);
       }
     });
   }
 
-  document.addEventListener("DOMContentLoaded", bind);
-})();
+  // Logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        if (adminToken) {
+          await postToGAS({
+            action: "logAction",
+            token: adminToken,
+            actionType: "LOGOUT",
+            details: { message: "Admin logged out" },
+          });
+        }
+      } catch (_) {}
+
+      adminToken = null;
+      adminInfo = null;
+      setAdminView(false);
+
+      // Close admin modal AND restore scroll
+      closeModal(adminModal);
+      closeAllModals();
+    });
+  }
+
+  // Toggle date filter
+  if (toggleDateFilterBtn && dateFilterWrap) {
+    toggleDateFilterBtn.addEventListener("click", () => {
+      const open = dateFilterWrap.style.display !== "none";
+      dateFilterWrap.style.display = open ? "none" : "block";
+    });
+  }
+
+  // Search files
+  if (searchFilesBtn) {
+    searchFilesBtn.addEventListener("click", async () => {
+      if (!adminToken) return setText(filesStatus, "❌ Please sign in first.");
+
+      setText(filesStatus, "Searching...");
+      if (filesTbody) filesTbody.innerHTML = `<tr><td colspan="3">Loading...</td></tr>`;
+
+      try {
+        const query = fileNameQuery?.value?.trim() || "";
+        const fromDate = dateFrom?.value || "";
+        const toDate = dateTo?.value || "";
+
+        const json = await postToGAS({
+          action: "listFiles",
+          token: adminToken,
+          query,
+          fromDate,
+          toDate,
+        });
+
+        const files = json.files || [];
+        setText(filesStatus, files.length ? `✅ Found ${files.length} file(s).` : "No results.");
+
+        if (filesTbody) {
+          if (!files.length) {
+            filesTbody.innerHTML = `<tr><td colspan="3" class="muted">No matching files.</td></tr>`;
+          } else {
+            filesTbody.innerHTML = files
+              .map(
+                (f) => `
+                <tr>
+                  <td><a href="${escHtml(f.url)}" target="_blank" rel="noopener">${escHtml(
+                  f.name
+                )}</a></td>
+                  <td>${escHtml(f.created)}</td>
+                  <td>
+                    <button class="chipBtn" data-del="${escHtml(f.id)}" type="button">Delete</button>
+                  </td>
+                </tr>
+              `
+              )
+              .join("");
+
+            // Bind delete buttons
+            $$("[data-del]", filesTbody).forEach((btn) => {
+              btn.addEventListener("click", async () => {
+                const id = btn.getAttribute("data-del");
+                if (!id) return;
+                if (!confirm("Delete this file?")) return;
+
+                try {
+                  await postToGAS({ action: "deleteFile", token: adminToken, fileId: id });
+                  await postToGAS({
+                    action: "logAction",
+                    token: adminToken,
+                    actionType: "DELETE_FILE",
+                    details: { fileId: id },
+                  });
+                  btn.closest("tr")?.remove();
+                } catch (err) {
+                  alert(err.message);
+                }
+              });
+            });
+          }
+        }
+      } catch (err) {
+        setText(filesStatus, `❌ ${err.message}`);
+        if (filesTbody) filesTbody.innerHTML = `<tr><td colspan="3">Error.</td></tr>`;
+      }
+    });
+  }
+
+  // Welcome email (logged only; sending email itself requires you to add a GAS handler if you want it to actually email)
+  if (sendWelcomeBtn) {
+    sendWelcomeBtn.addEventListener("click", async () => {
+      if (!adminToken) return setText(welcomeStatus, "❌ Please sign in first.");
+
+      const to = welcomeTo?.value?.trim() || "";
+      const customer = welcomeCustomer?.value?.trim() || "";
+      const company = welcomeCompany?.value?.trim() || "";
+
+      if (!to || !customer || !company) {
+        return setText(welcomeStatus, "❌ Please fill: recipient email, customer name, and company name.");
+      }
+
+      setText(welcomeStatus, "Sending...");
+
+      try {
+        // If you want GAS to actually SEND the email, you need to add a new action in Code.gs (I can do that next).
+        // For now, we still log it in the system.
+        await postToGAS({
+          action: "logAction",
+          token: adminToken,
+          actionType: "WELCOME_EMAIL",
+          details: { to, customer, company },
+        });
+
+        setText(welcomeStatus, "✅ Logged welcome email action.");
+      } catch (err) {
+        setText(welcomeStatus, `❌ ${err.message}`);
+      }
+    });
+  }
+
+  // Load logs (only if canViewLogs)
+  if (loadLogsBtn) {
+    loadLogsBtn.addEventListener("click", async () => {
+      if (!adminToken) return setText(logsStatus, "❌ Please sign in first.");
+      if (!adminInfo?.canViewLogs) return setText(logsStatus, "❌ Not authorised to view logs.");
+
+      setText(logsStatus, "Loading logs...");
+      if (logsTbody) logsTbody.innerHTML = `<tr><td colspan="4">Loading...</td></tr>`;
+
+      try {
+        const fromDate = logFrom?.value || "";
+        const toDate = logTo?.value || "";
+        const adminEmail = logEmailContains?.value?.trim() || "";
+        const actionType =
+          (logActionType?.value || "ALL").toUpperCase() === "ALL"
+            ? ""
+            : (logActionType?.value || "").toUpperCase();
+
+        const json = await postToGAS({
+          action: "listLogs",
+          token: adminToken,
+          fromDate,
+          toDate,
+          adminEmail,
+          actionType,
+        });
+
+        const logs = json.logs || [];
+        setText(logsStatus, logs.length ? `✅ ${logs.length} log(s).` : "No logs found.");
+
+        if (logsTbody) {
+          if (!logs.length) {
+            logsTbody.innerHTML = `<tr><td colspan="4" class="muted">No logs.</td></tr>`;
+          } else {
+            logsTbody.innerHTML = logs
+              .map(
+                (l) => `
+              <tr>
+                <td>${escHtml(l.timestamp)}</td>
+                <td>${escHtml(l.adminName)}<br><span style="opacity:.7">${escHtml(
+                  l.adminEmail
+                )}</span></td>
+                <td>${escHtml(l.actionType)}</td>
+                <td style="max-width:520px; white-space:pre-wrap;">${escHtml(l.details)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          }
+        }
+      } catch (err) {
+        setText(logsStatus, `❌ ${err.message}`);
+        if (logsTbody) logsTbody.innerHTML = `<tr><td colspan="4">Error.</td></tr>`;
+      }
+    });
+  }
+}
+
+/** -------------------------
+ *  Wire up buttons + modals
+ * ------------------------- */
+function bindModalsAndButtons() {
+  // Policy buttons
+  const openPolicyBtn = $("#openPolicyBtn");
+  const openPolicyBtn2 = $("#openPolicyBtn2");
+  if (openPolicyBtn) openPolicyBtn.addEventListener("click", showPolicyPopup);
+  if (openPolicyBtn2) openPolicyBtn2.addEventListener("click", showPolicyPopup);
+
+  // Detail modal close
+  const detailModal = $("#detailModal");
+  bindBackdropClose(detailModal, $("#closeDetailBtn"));
+
+  // Person modal close
+  const personModal = $("#personModal");
+  bindBackdropClose(personModal, $("#closePersonBtn"));
+
+  // Person buttons
+  $$(".personBtn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-person");
+      if (!key) return;
+      try {
+        showPerson(key);
+      } catch (err) {
+        // never freeze if something goes wrong
+        console.error(err);
+        closeAllModals();
+      }
+    });
+  });
+}
+
+/** -------------------------
+ *  Init
+ * ------------------------- */
+function init() {
+  bindEscapeKey();
+  bindForm();
+  bindAdmin();
+  bindModalsAndButtons();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    init();
+  } catch (err) {
+    console.error("Init failed:", err);
+    closeAllModals();
+  }
+});
