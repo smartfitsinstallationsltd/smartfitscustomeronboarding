@@ -766,15 +766,38 @@ body.modalOpen{
   background:rgba(255,255,255,.02);
 }
 
-.bigCard .svcBanner img{
-  width:100% !important;
-  max-width:100% !important;
-  height:190px !important;     /* make bigger/smaller here */
-  object-fit:cover !important;
-  display:block !important;
-  border:0 !important;
-  margin:0 !important;
+/* === Additional Services banner images – final fixed sizing === */
+
+.bigCard .svcBanner{
+  width:100%;
+  overflow:hidden;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.02);
+  border-top-left-radius:14px;
+  border-top-right-radius:14px;
 }
+
+.bigCard .svcBanner img{
+  width:100%;
+  height:160px;           /* 🔧 Adjust this: 140–180px works well */
+  object-fit:cover;
+  display:block;
+}
+
+/* Keep cards equal height and in grid */
+.bigGrid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:22px;
+}
+
+/* Mobile responsive */
+@media (max-width: 900px){
+  .bigGrid{
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* If any old class is forcing icon sizing, override them too */
 .bigCard img,
@@ -783,4 +806,5 @@ body.modalOpen{
 .bigCard .svcLogo{
   max-width:100% !important;
 }
+
 
