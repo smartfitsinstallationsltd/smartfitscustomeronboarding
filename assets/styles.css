@@ -535,18 +535,26 @@ footer{
   inset:0;
   background:rgba(0,0,0,.66);
   backdrop-filter: blur(8px);
+
   display:none;
-  align-items:center;
+  align-items:flex-start;        /* 🔧 changed from center */
   justify-content:center;
+
   padding:22px;
   z-index:50;
+
+  overflow-y:auto;               /* ✅ allow overlay scrolling */
 }
-.modalBackdrop.isOpen{ display:flex; }
+
+.modalBackdrop.isOpen{ 
+  display:flex; 
+}
 
 /* modal shell */
 .modal{
   width:min(920px, 100%);
-  max-height:min(78vh, 760px);
+  max-height:85vh;               /* ✅ modal never exceeds viewport */
+  margin-top:40px;               /* ✅ small top breathing room */
   background:linear-gradient(180deg, rgba(10,18,38,.98), rgba(8,14,30,.98));
   border:1px solid rgba(255,255,255,.12);
   border-radius:var(--r20);
@@ -555,6 +563,7 @@ footer{
   display:flex;
   flex-direction:column;
 }
+
 
 /* wider variant for policy popup if you use it */
 .modal.wide{
@@ -772,5 +781,6 @@ body.modalOpen{
     height:190px !important; /* slightly taller on mobile */
   }
 }
+
 
 
