@@ -664,4 +664,41 @@ footer{ padding:42px 0 52px; }
   .chipBtn{ width:100%; text-align:center; }
 }
 
+/* ==============================
+   FORCE Additional Services images full-width
+   (override any thumbnail/logo rules)
+============================== */
+
+.bigCard{
+  overflow:hidden;
+}
+
+/* if image is direct child OR wrapped, this will still catch it */
+.bigCard > img,
+.bigCard img{
+  display:block;
+  width:100% !important;
+  max-width:100% !important;
+  height:190px !important;        /* make them BIG */
+  object-fit:cover !important;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+/* if your HTML has a wrapper like <div class="svcMedia"><img/></div> */
+.bigCard .svcMedia,
+.bigCard .svcMedia img{
+  width:100% !important;
+  max-width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+/* subtle border/glow to match theme */
+.bigCard > img,
+.bigCard img{
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 10px 24px rgba(0,0,0,.35);
+}
+
 
