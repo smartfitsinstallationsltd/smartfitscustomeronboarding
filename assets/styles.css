@@ -758,3 +758,29 @@ body.modalOpen{
   }
 }
 
+/* ===== FORCE Additional Services images to be full-width banners (override anything old) ===== */
+.bigCard .svcBanner{
+  width:100%;
+  overflow:hidden;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.02);
+}
+
+.bigCard .svcBanner img{
+  width:100% !important;
+  max-width:100% !important;
+  height:190px !important;     /* make bigger/smaller here */
+  object-fit:cover !important;
+  display:block !important;
+  border:0 !important;
+  margin:0 !important;
+}
+
+/* If any old class is forcing icon sizing, override them too */
+.bigCard img,
+.bigCard .logo,
+.bigCard .svcIcon,
+.bigCard .svcLogo{
+  max-width:100% !important;
+}
+
