@@ -416,7 +416,7 @@ textarea.field{
 }
 
 /* -------------------------
-   Additional Services (BIG IMAGES)
+   Additional Services (banner images, 2x2 grid)
 ------------------------- */
 .bigGrid{
   display:grid;
@@ -431,29 +431,43 @@ textarea.field{
   background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
   box-shadow: var(--shadow2);
   overflow:hidden;
-  min-height:290px; /* keeps all cards uniform */
   display:flex;
   flex-direction:column;
+  min-height:290px; /* keeps all cards uniform */
 }
 
-/* ✅ This is the important bit: FULL WIDTH banner images */
-.bigGrid .bigCard > img,
-.bigGrid .bigCard img{
-  width:100% !important;
-  max-width:100% !important;
-  height:600px !important;     /* increase if you want larger banners */
-  object-fit:cover !important;
-  display:block !important;
+/* ✅ This targets ONLY the main card image (the banner) */
+.bigGrid .bigCard > img{
+  width:100%;
+  height:150px;          /* 🔧 change this to 140–170 if you want */
+  object-fit:cover;
+  display:block;
   border-bottom:1px solid rgba(255,255,255,.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
-/* optional: add a subtle border inside image area */
-.bigGrid .bigCard > img,
-.bigGrid .bigCard img{
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.06),
-    0 12px 34px rgba(0,0,0,.35);
+.bigCard .pad{
+  padding:16px 18px 18px;
+  flex:1;
 }
+
+.svcTitle{
+  font-size:16px;
+  font-weight:750;
+  margin:0 0 8px;
+}
+
+.svcCardText{
+  margin:0;
+  color:var(--muted);
+  font-size:13.5px;
+  line-height:1.65;
+}
+
+@media (max-width: 980px){
+  .bigGrid{ grid-template-columns:1fr; }
+}
+
 
 /* card inner padding */
 .bigCard .pad{
@@ -757,54 +771,3 @@ body.modalOpen{
     height:190px !important; /* slightly taller on mobile */
   }
 }
-
-/* ===== FORCE Additional Services images to be full-width banners (override anything old) ===== */
-.bigCard .svcBanner{
-  width:100%;
-  overflow:hidden;
-  border-bottom:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.02);
-}
-
-/* === Additional Services banner images – final fixed sizing === */
-
-.bigCard .svcBanner{
-  width:100%;
-  overflow:hidden;
-  border-bottom:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.02);
-  border-top-left-radius:14px;
-  border-top-right-radius:14px;
-}
-
-.bigCard .svcBanner img{
-  width:100%;
-  height:160px;           /* 🔧 Adjust this: 140–180px works well */
-  object-fit:cover;
-  display:block;
-}
-
-/* Keep cards equal height and in grid */
-.bigGrid{
-  display:grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:22px;
-}
-
-/* Mobile responsive */
-@media (max-width: 900px){
-  .bigGrid{
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* If any old class is forcing icon sizing, override them too */
-.bigCard img,
-.bigCard .logo,
-.bigCard .svcIcon,
-.bigCard .svcLogo{
-  max-width:100% !important;
-}
-
-
