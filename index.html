@@ -4,7 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SmartFits | Customer Onboarding</title>
-  <link rel="stylesheet" href="./assets/styles.css" />
+
+  <!-- ✅ FIX: your actual file is assets/style.css (NOT styles.css) -->
+  <link rel="stylesheet" href="./assets/style.css" />
 </head>
 
 <body>
@@ -98,7 +100,7 @@
         </div>
       </div>
 
-      <!-- CUSTOMER SUCCESS (PYRAMID: EMMA TOP) -->
+      <!-- CUSTOMER SUCCESS (pyramid: Emma top) -->
       <div class="doc">
         <h3>Customer Success Team</h3>
         <p>
@@ -135,7 +137,7 @@
         </div>
       </div>
 
-      <!-- PROJECT COORDS / FIELD OPS (PYRAMID: ROZ TOP) -->
+      <!-- PROJECT COORDS (pyramid: Roz top) -->
       <div class="doc">
         <h3>Project Coordinators / Field Operations Support</h3>
         <p>
@@ -306,7 +308,7 @@
     </div>
   </section>
 
-  <!-- ADDITIONAL SERVICES (matches your screenshot layout) -->
+  <!-- ADDITIONAL SERVICES (equal sized modern cards) -->
   <section>
     <div class="shell">
       <p class="kicker">Additional Services</p>
@@ -316,10 +318,10 @@
 
       <div class="svcGrid">
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Prolius" src="./images/prolius_logo.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Prolius</div>
             <div class="svcText">
               Prolius Fleet Management is a comprehensive digital platform that helps organisations monitor, manage, and optimise their vehicle fleets by providing integrated tracking, compliance management, driver performance insights and licence checking.
@@ -328,10 +330,10 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Multi-camera systems" src="./images/multi_camera_systems.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Multi-camera systems</div>
             <div class="svcText">
               Integrated into MyGeotab, the multi-camera system delivers seamless access to real-time and recorded video alongside vehicle and driver data, enhancing safety insights, incident review, and fleet operational visibility from a single platform.
@@ -340,10 +342,10 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Live Dash-cams" src="./images/vehicle_dashcam.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Live Dash-cams</div>
             <div class="svcText">
               Integrated into MyGeotab, AI-enabled dash cameras capture and analyse driving behaviour in real time, using advanced algorithms to detect risk, improve driver safety, support coaching, and provide actionable insights directly within a single fleet management platform.
@@ -352,10 +354,10 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Commercial Upgrades" src="./images/commercial_upgrades.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Commercial Upgrades</div>
             <div class="svcText">
               Commercial vehicle upgrades such as parking sensors and advanced lighting systems enhance driver awareness, manoeuvring safety, and vehicle visibility, while supporting safer operations and reduced incident risk across the fleet.
@@ -393,7 +395,6 @@
       </div>
 
       <div class="modalBody">
-        <!-- LOGIN VIEW -->
         <div id="adminLoginView">
           <div class="formWrap" style="margin-top:0;">
             <form id="adminLoginForm" autocomplete="off" novalidate>
@@ -419,14 +420,12 @@
           </div>
         </div>
 
-        <!-- DASHBOARD VIEW -->
         <div id="adminDashView" style="display:none;">
           <div class="adminTop">
             <div class="adminSignedIn" id="adminSignedInAs"></div>
             <button class="adminLogout" type="button" id="adminLogoutBtn">Log out</button>
           </div>
 
-          <!-- 1) SEARCH FILES -->
           <div class="adminCard">
             <div class="adminCardTitle">Search files</div>
             <div class="adminCardSub">Search by PDF filename, and optionally filter by date.</div>
@@ -468,7 +467,6 @@
             </div>
           </div>
 
-          <!-- 2) SEND WELCOME EMAIL -->
           <div class="adminCard">
             <div class="adminCardTitle">Send a welcome email</div>
             <div class="adminCardSub">Send a simple welcome email to a new customer contact.</div>
@@ -495,7 +493,6 @@
             </div>
           </div>
 
-          <!-- 3) LOGS (ONLY IF canViewLogs) -->
           <div class="adminCard" id="logsCard" style="display:none;">
             <div class="adminCardTitle">Logs</div>
             <div class="adminCardSub">Only available to authorised admins.</div>
@@ -555,7 +552,7 @@
     </div>
   </div>
 
-  <!-- ✅ TEAM MEMBER MODAL -->
+  <!-- ✅ PERSON MODAL -->
   <div class="modalBackdrop" id="personModal" aria-hidden="true">
     <div class="modal modalMedium" role="dialog" aria-modal="true" aria-labelledby="personTitle">
       <div class="modalHeader">
@@ -566,7 +563,7 @@
     </div>
   </div>
 
-  <!-- ✅ DETAIL MODAL (used for policy + log detail) -->
+  <!-- ✅ DETAIL MODAL (policy/log detail) -->
   <div class="modalBackdrop" id="detailModal" aria-hidden="true">
     <div class="modal modalMedium" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
       <div class="modalHeader">
@@ -577,7 +574,6 @@
     </div>
   </div>
 
-  <!-- Policy HTML Template (hidden) -->
   <template id="policyTemplate">
     <div class="doc">
       <p style="margin-top:0;">
@@ -617,6 +613,7 @@
     </div>
   </template>
 
+  <!-- ✅ FIX: keep this as assets/app.js (your screenshot shows it exists) -->
   <script src="./assets/app.js"></script>
 </body>
 </html>
