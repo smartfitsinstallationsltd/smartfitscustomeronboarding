@@ -381,17 +381,58 @@ textarea.field{ min-height:92px; resize:vertical; }
   flex-direction:column;
 }
 
-/* ✅ Make images larger and consistent */
+/* ==============================
+   Additional Services — FIXED
+   Full-width large images
+============================== */
+
+.bigCard{
+  border-radius: var(--radius2);
+  border:1px solid rgba(255,255,255,.10);
+  background: linear-gradient(180deg, rgba(12,23,52,.82), rgba(12,23,52,.62));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ✅ FULL WIDTH IMAGE */
 .bigCard > img{
   width:100%;
-  height:600px;               /* ✅ bigger */
+  height:auto;                 /* remove fixed height */
+  aspect-ratio: 16 / 7;        /* keeps consistent shape */
   object-fit:cover;
   display:block;
-  border-bottom:1px solid rgba(255,255,255,.10);
 
-  /* subtle in-theme image border/glow */
-  outline:1px solid rgba(255,255,255,.06);
-  outline-offset:-1px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+
+  /* subtle theme border + glow */
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 8px 18px rgba(0,0,0,.35);
+}
+
+/* content padding */
+.bigCard .pad{
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* titles */
+.svcTitle{
+  margin:0;
+  font-size:16px;
+  font-weight:600;
+  color:#fff;
+}
+
+/* text */
+.svcCardText{
+  margin:0;
+  font-size:13px;
+  color:rgba(233,238,251,.78);
 }
 
 /* content padding */
@@ -622,4 +663,5 @@ footer{ padding:42px 0 52px; }
   .headRight{ width:100%; justify-content:flex-end; }
   .chipBtn{ width:100%; text-align:center; }
 }
+
 
