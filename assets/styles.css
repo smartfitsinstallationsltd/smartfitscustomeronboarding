@@ -2,9 +2,6 @@
    SmartFits Customer Onboarding — styles.css (FULL FILE)
    ========================================================= */
 
-/* -------------------------
-   CSS Variables / Theme
-------------------------- */
 :root{
   --bg0:#050914;
   --bg1:#070d1c;
@@ -33,11 +30,9 @@
   --shell:1160px;
 }
 
-/* -------------------------
-   Base / Reset
-------------------------- */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
@@ -52,29 +47,17 @@ body{
 }
 
 img{ max-width:100%; height:auto; display:block; }
-
 a{ color:var(--text); text-decoration:none; }
 a:hover{ text-decoration:underline; }
+button, input, textarea{ font-family:inherit; }
+::selection{ background:rgba(75,132,255,.35); }
 
-button, input, textarea{
-  font-family:inherit;
-}
-
-::selection{
-  background:rgba(75,132,255,.35);
-}
-
-/* -------------------------
-   Layout Helpers
-------------------------- */
+/* Layout */
 .shell{
   width:min(var(--shell), calc(100% - 44px));
   margin:0 auto;
 }
-
-section{
-  padding:52px 0;
-}
+section{ padding:52px 0; }
 
 .accentLine{
   width:56px;
@@ -83,7 +66,6 @@ section{
   background:linear-gradient(90deg, var(--brand), var(--accent));
   margin:12px 0 18px;
 }
-
 .lineGap{ height:10px; }
 
 .kicker{
@@ -94,11 +76,7 @@ section{
   margin:0 0 10px;
 }
 
-h1,h2,h3{
-  margin:0;
-  line-height:1.1;
-}
-
+h1,h2,h3{ margin:0; line-height:1.1; }
 h1{ font-size:38px; }
 h2{ font-size:30px; }
 h3{ font-size:18px; }
@@ -109,16 +87,13 @@ h3{ font-size:18px; }
   line-height:1.65;
   margin:0 0 12px;
 }
-
 .small{
   color:var(--muted2);
   font-size:12.5px;
   line-height:1.55;
 }
 
-/* -------------------------
-   Header
-------------------------- */
+/* Header */
 header{
   position:sticky;
   top:0;
@@ -127,7 +102,6 @@ header{
   backdrop-filter: blur(14px);
   border-bottom:1px solid rgba(255,255,255,.06);
 }
-
 .headInner{
   display:flex;
   align-items:center;
@@ -135,18 +109,13 @@ header{
   gap:16px;
   padding:16px 0;
 }
-
 .brand{
   display:flex;
   align-items:center;
   gap:12px;
   min-width:260px;
 }
-
-.logo{
-  height:38px;
-  width:auto;
-}
+.logo{ height:38px; width:auto; }
 
 .brandText .name{
   font-weight:800;
@@ -159,12 +128,7 @@ header{
   color:var(--muted2);
   margin-top:2px;
 }
-
-.headRight{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.headRight{ display:flex; align-items:center; gap:12px; }
 
 .chipBtn{
   appearance:none;
@@ -182,20 +146,15 @@ header{
   border-color:rgba(75,132,255,.55);
   background:rgba(75,132,255,.10);
 }
-.chipBtn:active{
-  transform:translateY(1px);
-}
+.chipBtn:active{ transform:translateY(1px); }
 
-/* -------------------------
-   About / Hero grid
-------------------------- */
+/* About / Hero */
 .grid2{
   display:grid;
   grid-template-columns: 1.1fr .9fr;
   gap:28px;
   align-items:start;
 }
-
 .media{
   border-radius:var(--r20);
   overflow:hidden;
@@ -204,9 +163,9 @@ header{
   box-shadow: var(--shadow2);
 }
 
-/* ✅ push the hero image down slightly (fine tune here) */
+/* ✅ PULL HERO IMAGE DOWN BY 150PX */
 .heroMedia{
-  margin-top:10px; /* <-- change this value to fine tune vertical alignment */
+  margin-top:150px;
 }
 .heroMedia img{
   width:100%;
@@ -214,9 +173,7 @@ header{
   object-fit:cover;
 }
 
-/* -------------------------
-   Document / Panels
-------------------------- */
+/* Doc panels */
 .doc{
   background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.10);
@@ -224,19 +181,15 @@ header{
   padding:22px;
   box-shadow: var(--shadow2);
 }
-
 .doc p{
   margin:10px 0;
   color:var(--muted);
   font-size:14px;
   line-height:1.65;
 }
-
 .blockTop{ margin-top:34px; }
 
-/* -------------------------
-   Team Grid / Cards
-------------------------- */
+/* Team cards */
 .teamGrid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -244,7 +197,16 @@ header{
   margin-top:14px;
 }
 
-.personSpacer{ display:none; }
+/* ✅ LEADER ROW CENTERED (pyramid leaders) */
+.leaderRow{
+  display:flex;
+  justify-content:center;
+  margin-top:14px;
+}
+.leaderRow .person{
+  max-width:520px;
+  width:100%;
+}
 
 .person{
   width:100%;
@@ -257,7 +219,6 @@ header{
   background:rgba(255,255,255,.03);
   box-shadow: 0 10px 26px rgba(0,0,0,.35);
 }
-
 .personBtn{
   cursor:pointer;
   transition:.16s ease;
@@ -277,37 +238,24 @@ header{
   box-shadow:0 6px 18px rgba(0,0,0,.45);
 }
 
-/* ✅ Name plates: LEFT aligned and lighter text */
-.person > div{
-  text-align:left;
-}
+.person > div{ text-align:left; }
 .personName{
-  font-weight:700;           /* bold name */
+  font-weight:700;
   font-size:14px;
   line-height:1.2;
   color:var(--text);
 }
 .personRole{
-  font-weight:400;           /* NOT bold */
+  font-weight:400;
   font-size:12.5px;
   line-height:1.25;
   color:var(--muted);
   margin-top:2px;
 }
 
-/* Leader card hint */
-.leaderCard{
-  border-color:rgba(255,61,99,.18);
-}
+.leaderCard{ border-color:rgba(255,61,99,.18); }
 
-/* Pyramid layout helpers (optional, if used in HTML) */
-.teamRow1{ grid-column:1 / -1; }
-.teamRow1 .person{ justify-self:center; max-width:520px; }
-.teamRow2{ grid-column:1 / -1; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px; }
-
-/* -------------------------
-   Form
-------------------------- */
+/* Form */
 .formWrap{
   margin-top:18px;
   padding:18px;
@@ -316,7 +264,6 @@ header{
   background:rgba(10,16,34,.55);
   box-shadow: var(--shadow2);
 }
-
 .fields{ display:grid; gap:14px; }
 
 label{
@@ -325,7 +272,6 @@ label{
   color:var(--muted);
   margin:0 0 6px;
 }
-
 .requiredMark{ color:var(--accent); margin-left:4px; }
 .reqStar{ color:var(--accent); font-weight:700; }
 
@@ -343,32 +289,25 @@ label{
   border-color:rgba(75,132,255,.55);
   box-shadow:0 0 0 3px rgba(75,132,255,.18);
 }
-textarea.field{
-  min-height:92px;
-  resize:vertical;
-}
+textarea.field{ min-height:92px; resize:vertical; }
 
 .row2{
   display:grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
   gap:14px;
 }
-
 .hint{
   margin-top:6px;
   font-size:12px;
   color:var(--muted2);
 }
-
 .checkRow{
   display:flex;
   align-items:flex-start;
   gap:10px;
 }
-.checkRow input{
-  margin-top:4px;
-  transform:scale(1.05);
-}
+.checkRow input{ margin-top:4px; transform:scale(1.05); }
+
 .linkBtn{
   appearance:none;
   border:none;
@@ -385,7 +324,6 @@ textarea.field{
   gap:10px;
   margin-top:16px;
 }
-
 .actions button{
   border-radius:999px;
   border:1px solid rgba(255,255,255,.14);
@@ -405,9 +343,7 @@ textarea.field{
   background:rgba(75,132,255,.18);
   font-weight:700;
 }
-.actions .primary:hover{
-  background:rgba(75,132,255,.26);
-}
+.actions .primary:hover{ background:rgba(75,132,255,.26); }
 
 .status{
   margin-top:12px;
@@ -415,17 +351,14 @@ textarea.field{
   color:var(--muted);
 }
 
-/* -------------------------
-   Additional Services (uniform 2x2 cards)
-------------------------- */
+/* Additional Services (uniform) */
 .bigGrid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:18px;
   margin-top:18px;
-  align-items:stretch; /* ✅ makes rows match height */
+  align-items:stretch;
 }
-
 .bigCard{
   border-radius:var(--r20);
   border:1px solid rgba(255,255,255,.10);
@@ -434,28 +367,23 @@ textarea.field{
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  height:100%;          /* ✅ stretch to same height in row */
-  min-height:250px;     /* ✅ smaller overall */
+  height:100%;
+  min-height:250px;
 }
-
-/* ✅ fixed, smaller banner area so all images match */
 .bigCard .svcBanner{
   width:100%;
-  height:300px;         /* 🔧 smaller: try 150–175 */
+  height:220px;
   overflow:hidden;
   border-bottom:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.02);
 }
-
 .bigCard .svcBanner img{
   width:100%;
   height:100%;
-  object-fit:cover;     /* ✅ always fills */
+  object-fit:cover;
   object-position:center;
   display:block;
 }
-
-/* ✅ uniform text area */
 .bigCard .pad{
   padding:14px 16px 16px;
   flex:1;
@@ -463,14 +391,11 @@ textarea.field{
   flex-direction:column;
   gap:8px;
 }
-
 .svcTitle{
   font-size:15px;
   font-weight:700;
   margin:0;
 }
-
-/* ✅ clamp the text so long/short cards stay equal height */
 .svcCardText{
   margin:0;
   color:var(--muted);
@@ -478,37 +403,17 @@ textarea.field{
   line-height:1.6;
 
   display:-webkit-box;
-  -webkit-line-clamp:4;       /* 🔧 change to 3–5 */
+  -webkit-line-clamp:4;
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
-
-/* responsive */
 @media (max-width: 980px){
   .bigGrid{ grid-template-columns:1fr; }
-  .bigCard .svcBanner{ height:170px; }
+  .bigCard .svcBanner{ height:190px; }
 }
 
-/* -------------------------
-   Cancellation Policy box
-------------------------- */
-#policyBottom{
-  margin:0 auto 40px;
-  width:min(var(--shell), calc(100% - 44px));
-}
-
-.plainLink{
-  color:var(--text);
-  text-decoration:underline;
-}
-.plainLink:hover{ color:var(--brand2); }
-
-/* -------------------------
-   Footer
-------------------------- */
-footer{
-  padding:30px 0 50px;
-}
+/* Footer */
+footer{ padding:30px 0 50px; }
 .footBox{
   border-radius:var(--r20);
   border:1px solid rgba(255,255,255,.10);
@@ -522,39 +427,25 @@ footer{
   gap:14px;
   margin-bottom:10px;
 }
-.footThanks{
-  font-weight:700;
-  color:var(--text);
-}
+.footThanks{ font-weight:700; color:var(--text); }
 
-/* -------------------------
-   Modal / Popups
-------------------------- */
+/* Modals */
 .modalBackdrop{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.66);
   backdrop-filter: blur(8px);
-
   display:none;
-  align-items:flex-start;        /* 🔧 changed from center */
+  align-items:center;
   justify-content:center;
-
   padding:22px;
   z-index:50;
-
-  overflow-y:auto;               /* ✅ allow overlay scrolling */
 }
+.modalBackdrop.isOpen{ display:flex; }
 
-.modalBackdrop.isOpen{ 
-  display:flex; 
-}
-
-/* modal shell */
 .modal{
   width:min(920px, 100%);
-  max-height:85vh;               /* ✅ modal never exceeds viewport */
-  margin-top:40px;               /* ✅ small top breathing room */
+  max-height:min(78vh, 760px);
   background:linear-gradient(180deg, rgba(10,18,38,.98), rgba(8,14,30,.98));
   border:1px solid rgba(255,255,255,.12);
   border-radius:var(--r20);
@@ -563,14 +454,8 @@ footer{
   display:flex;
   flex-direction:column;
 }
+.modal.wide{ width:min(1040px, 100%); }
 
-
-/* wider variant for policy popup if you use it */
-.modal.wide{
-  width:min(1040px, 100%);
-}
-
-/* header */
 .modalHeader{
   display:flex;
   align-items:center;
@@ -599,17 +484,12 @@ footer{
   background:rgba(75,132,255,.10);
 }
 
-/* ✅ modal content scrolls, not the page */
 .modalBody{
   padding:16px;
   overflow:auto;
   -webkit-overflow-scrolling:touch;
 }
-
-/* ✅ Custom blue scrollbar (all modals) */
-.modalBody::-webkit-scrollbar{
-  width:10px;
-}
+.modalBody::-webkit-scrollbar{ width:10px; }
 .modalBody::-webkit-scrollbar-track{
   background:rgba(255,255,255,.04);
   border-left:1px solid rgba(255,255,255,.06);
@@ -622,28 +502,21 @@ footer{
 .modalBody::-webkit-scrollbar-thumb:hover{
   background:linear-gradient(180deg, rgba(123,167,255,.95), rgba(75,132,255,.55));
 }
-
-/* For Firefox */
 .modalBody{
   scrollbar-width:thin;
   scrollbar-color: rgba(75,132,255,.75) rgba(255,255,255,.06);
 }
 
-/* prevent background scroll when a modal is open */
-body.modalOpen{
-  overflow:hidden;
-}
+/* body scroll lock handled in JS using position:fixed */
+body.modalOpen{ overflow:hidden; }
 
-/* -------------------------
-   Person Popup Layout
-------------------------- */
+/* Person popup */
 #personBody{
   display:grid;
   grid-template-columns: 220px 1fr;
   gap:16px;
   align-items:start;
 }
-
 .personModalImg{
   width:100%;
   height:220px;
@@ -652,7 +525,6 @@ body.modalOpen{
   border:1px solid rgba(255,255,255,.10);
   box-shadow:0 12px 28px rgba(0,0,0,.45);
 }
-
 .personMeta h3{
   margin:0 0 6px;
   font-size:20px;
@@ -664,7 +536,6 @@ body.modalOpen{
   margin:0 0 12px;
   font-weight:400;
 }
-
 .metaBlock{
   border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.03);
@@ -672,101 +543,17 @@ body.modalOpen{
   padding:12px;
   margin-top:12px;
 }
+.metaLine{ font-size:13.5px; color:var(--text); margin:6px 0; }
+.metaLabel{ color:var(--muted2); display:inline-block; width:70px; }
 
-.metaLine{
-  font-size:13.5px;
-  color:var(--text);
-  margin:6px 0;
-}
-.metaLabel{
-  color:var(--muted2);
-  display:inline-block;
-  width:70px;
-}
-.metaValue{
-  color:var(--text);
-}
-
-/* make links look like white text (no blue) */
-.metaBlock a{
-  color:var(--text);
-  text-decoration:underline;
-}
-.metaBlock a:hover{
-  color:var(--brand2);
-}
-
-/* -------------------------
-   Admin Dashboard sections (if present in modal body)
-------------------------- */
-.adminSection{
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.03);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:14px;
-}
-
-.adminSection h3{
-  margin:0 0 10px;
-  font-size:16px;
-  font-weight:850;
-}
-
-.adminGrid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:12px;
-}
-
-.adminRow{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-
-.adminRow .field{
-  flex:1;
-  min-width:220px;
-}
-
-.table{
-  width:100%;
-  border-collapse:collapse;
-  overflow:hidden;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
-}
-.table th, .table td{
-  text-align:left;
-  padding:10px 10px;
-  font-size:13px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-}
-.table th{
-  color:var(--muted);
-  background:rgba(255,255,255,.03);
-  font-weight:700;
-}
-.table td{
-  color:var(--text);
-}
-.table tr:last-child td{ border-bottom:none; }
-
-/* -------------------------
-   Responsive
-------------------------- */
 @media (max-width: 980px){
   .grid2{ grid-template-columns: 1fr; }
   .heroMedia{ margin-top:16px; }
   .heroMedia img{ height:260px; }
   .teamGrid{ grid-template-columns:1fr; }
-  .bigGrid{ grid-template-columns:1fr; }
   #personBody{ grid-template-columns: 1fr; }
   .personModalImg{ height:260px; }
 }
-
 @media (max-width: 520px){
   h1{ font-size:30px; }
   h2{ font-size:24px; }
@@ -776,11 +563,4 @@ body.modalOpen{
   .row2{ grid-template-columns:1fr; }
   .actions{ flex-direction:column; }
   .actions button{ width:100%; }
-  .bigGrid .bigCard > img,
-  .bigGrid .bigCard img{
-    height:190px !important; /* slightly taller on mobile */
-  }
 }
-
-
-
