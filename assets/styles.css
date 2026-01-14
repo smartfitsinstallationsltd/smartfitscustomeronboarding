@@ -441,7 +441,7 @@ textarea.field{
 /* ✅ fixed, smaller banner area so all images match */
 .bigCard .svcBanner{
   width:100%;
-  height:165px;         /* 🔧 smaller: try 150–175 */
+  height:300px;         /* 🔧 smaller: try 150–175 */
   overflow:hidden;
   border-bottom:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.02);
@@ -772,4 +772,5 @@ body.modalOpen{
     height:190px !important; /* slightly taller on mobile */
   }
 }
+
 
