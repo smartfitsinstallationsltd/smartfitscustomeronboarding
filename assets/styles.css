@@ -1,19 +1,15 @@
-/* SmartFits Customer Onboarding - Styles */
-
 :root{
   --bg:#070b14;
   --panel:#0b1326;
-  --panel2:#0a1020;
   --stroke:rgba(255,255,255,.10);
-  --stroke2:rgba(255,255,255,.14);
   --text:rgba(255,255,255,.92);
-  --muted:rgba(235,242,255,.72);
+  --muted:rgba(235,242,255,.70);
   --muted2:rgba(235,242,255,.55);
   --blue:#4b84ff;
   --red:#ff3b4d;
-  --shadow:0 20px 60px rgba(0,0,0,.55);
   --radius:18px;
   --radius2:22px;
+  --shadow:0 18px 55px rgba(0,0,0,.55);
   --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 
@@ -27,23 +23,18 @@ body{
     radial-gradient(900px 600px at 20% -10%, rgba(75,132,255,.18), transparent 60%),
     radial-gradient(900px 600px at 90% 10%, rgba(255,59,77,.10), transparent 60%),
     linear-gradient(180deg, #050810, #070b14 35%, #050810);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a{color:inherit}
-.muted{color:var(--muted2)}
-.small{font-size:12px; color:var(--muted2)}
-.reqStar, .requiredMark{color:var(--red); font-weight:700}
+/* ✅ lock background scroll when modal open */
+body.modalOpen{
+  overflow:hidden;
+  height:100vh;
+}
 
 .shell{width:min(1120px, calc(100% - 40px)); margin:0 auto}
 section{padding:34px 0}
-.lineGap{height:10px}
-.accentLine{
-  height:3px;
-  width:54px;
-  border-radius:99px;
-  background: linear-gradient(90deg, var(--blue), var(--red));
-  margin-top:10px;
-}
 
 .kicker{
   letter-spacing:.24em;
@@ -52,12 +43,19 @@ section{padding:34px 0}
   color:rgba(235,242,255,.60);
   margin:0 0 8px;
 }
-
 h1,h2,h3{margin:0 0 10px}
 h1{font-size:34px}
 h2{font-size:26px}
 h3{font-size:18px}
 .lead{color:rgba(235,242,255,.82); line-height:1.65; font-size:14px}
+.lineGap{height:10px}
+.accentLine{
+  height:3px;
+  width:54px;
+  border-radius:99px;
+  background: linear-gradient(90deg, var(--blue), var(--red));
+  margin-top:10px;
+}
 
 /* Header */
 header{
@@ -77,18 +75,8 @@ header{
 }
 .brand{display:flex; align-items:center; gap:12px}
 .logo{height:34px; width:auto}
-.brandText .name{
-  font-weight:800;
-  letter-spacing:.08em;
-  font-size:14px;
-}
-.brandText .tag{
-  font-size:12px;
-  color:rgba(235,242,255,.65);
-  margin-top:2px;
-}
-
-.headRight{display:flex; align-items:center; gap:12px}
+.brandText .name{font-weight:800; letter-spacing:.08em; font-size:14px}
+.brandText .tag{font-size:12px; color:rgba(235,242,255,.65); margin-top:2px}
 
 .chipBtn{
   border:1px solid rgba(255,255,255,.16);
@@ -119,7 +107,7 @@ header{
 }
 .media{
   border-radius: var(--radius2);
-  border:1px solid var(--stroke);
+  border:1px solid rgba(255,255,255,.10);
   overflow:hidden;
   background: rgba(255,255,255,.03);
   box-shadow: var(--shadow);
@@ -130,10 +118,10 @@ header{
   height:auto;
   display:block;
   border-radius: 16px;
-  margin-top:10px; /* <-- adjust this (10px) to fine-tune the vertical centering */
+  margin-top:10px; /* ✅ change this number to fine-tune */
 }
 
-/* Doc blocks */
+/* Blocks */
 .doc{
   background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.10);
@@ -143,35 +131,29 @@ header{
 }
 .doc p{color:rgba(235,242,255,.78); line-height:1.65; font-size:14px}
 
-/* Team grid */
+/* Team layout */
 .teamGrid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
   gap:14px;
   margin-top:14px;
 }
-
-.leaderRow{
-  display:flex;
-  justify-content:center;
-  margin-top:14px;
-}
+.leaderRow{display:flex; justify-content:center; margin-top:14px}
 .leaderRow .person{width:min(520px, 100%)}
 
-/* Person card */
+/* Nameplates */
 .person{
   display:flex;
   align-items:center;
   gap:12px;
   width:100%;
-  padding:14px 14px;
+  padding:14px;
   text-align:left;
   border-radius:16px;
   border:1px solid rgba(255,255,255,.10);
   background: rgba(10,16,32,.55);
   cursor:pointer;
   transition:.15s ease;
-  position:relative;
 }
 .person:hover{
   transform: translateY(-1px);
@@ -195,9 +177,8 @@ header{
   justify-content:center;
   min-width:0;
 }
-
 .personName{
-  font-weight:700;
+  font-weight:600;
   color:#fff;
   font-size:14px;
   line-height:1.2;
@@ -205,18 +186,16 @@ header{
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
 .personRole{
-  font-weight:400;           /* not bold */
-  color: rgba(235,242,255,.78);
-  font-size:12.5px;          /* thinner look */
+  font-weight:400;
+  color: rgba(235,242,255,.76);
+  font-size:12.5px;
   line-height:1.2;
   margin-top:3px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
 .leaderCard{
   background: linear-gradient(180deg, rgba(75,132,255,.10), rgba(10,16,32,.55));
   border-color: rgba(75,132,255,.22);
@@ -246,12 +225,7 @@ label{display:block; font-size:12.5px; color:rgba(235,242,255,.78); margin-botto
 .field:focus{border-color: rgba(75,132,255,.35); box-shadow: 0 0 0 3px rgba(75,132,255,.15)}
 textarea.field{min-height:90px; resize:vertical}
 
-.row2{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:14px;
-}
-
+.row2{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px}
 .hint{font-size:12px; color:rgba(235,242,255,.55); margin-top:6px}
 .checkRow{display:flex; gap:10px; align-items:flex-start}
 .checkRow input{margin-top:3px}
@@ -278,15 +252,12 @@ textarea.field{min-height:90px; resize:vertical}
   background: rgba(75,132,255,.14);
   font-weight:700;
 }
-.status{
-  margin-top:12px;
-  font-size:12.5px;
-  color: rgba(235,242,255,.70);
-}
+
+.status{margin-top:12px; font-size:12.5px; color: rgba(235,242,255,.70)}
 .status.ok{color: rgba(160,255,200,.95)}
 .status.err{color: rgba(255,150,160,.95)}
 
-/* Additional services (match screenshot layout) */
+/* Additional Services */
 .svcGrid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -297,29 +268,43 @@ textarea.field{min-height:90px; resize:vertical}
   border-radius: var(--radius2);
   border:1px solid rgba(255,255,255,.10);
   background: rgba(10,16,32,.55);
+  min-height: 280px;
+  display:flex;
+  flex-direction:column;
   overflow:hidden;
-  min-height: 240px;
 }
-.svcImg{
-  height: 64px;
-  padding: 14px;
+
+/* ✅ Bigger images + border */
+.svcHeader{
+  padding:14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  min-height: 96px; /* bigger header area */
   display:flex;
   align-items:flex-start;
-  justify-content:flex-start;
 }
-.svcImg img{
-  max-height:40px;
-  max-width: 220px;
+.svcHeader img{
+  height: 64px;              /* ✅ bigger */
+  width: auto;
+  max-width: 320px;
   object-fit:contain;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
+
+  border: 1px solid rgba(255,255,255,.14);  /* ✅ subtle border */
+  border-radius: 12px;
+  padding: 8px;
+  background: rgba(255,255,255,.03);
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
 }
-.svcBody{
-  padding: 10px 18px 18px;
+
+.svcContent{
+  padding:16px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex:1;
 }
 .svcTitle{
-  font-weight:800;
+  font-weight:650;
   font-size:14px;
-  margin-bottom:8px;
   color:#fff;
 }
 .svcText{
@@ -338,6 +323,7 @@ footer{padding:28px 0 40px}
 }
 .footTop{display:flex; align-items:center; justify-content:space-between; gap:12px}
 .footThanks{color:rgba(235,242,255,.75); font-size:13px}
+.small{font-size:12px; color:var(--muted2)}
 
 /* Modals */
 .modalBackdrop{
@@ -359,7 +345,11 @@ footer{padding:28px 0 40px}
   border-radius: var(--radius2);
   box-shadow: var(--shadow);
   overflow:hidden;
+  max-height: calc(100vh - 44px); /* ✅ fit viewport */
+  display:flex;
+  flex-direction:column;          /* ✅ allow body to scroll */
 }
+
 .modalWide{width:min(980px, 100%)}
 .modalMedium{width:min(720px, 100%)}
 
@@ -369,6 +359,7 @@ footer{padding:28px 0 40px}
   justify-content:space-between;
   padding:14px 16px;
   border-bottom:1px solid rgba(255,255,255,.08);
+  flex: 0 0 auto;
 }
 .modalHeader .title{font-weight:800}
 .closeBtn{
@@ -379,23 +370,22 @@ footer{padding:28px 0 40px}
   padding:8px 12px;
   cursor:pointer;
 }
-.modalBody{padding:16px}
 
-/* Person modal content */
-.personModalGrid{
-  display:grid;
-  grid-template-columns: 140px 1fr;
-  gap:16px;
-  align-items:start;
+/* ✅ POPUP CONTENT SCROLLS (not the page) */
+.modalBody{
+  padding:16px;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto;
 }
+
+/* Person modal */
+.personModalGrid{display:grid; grid-template-columns: 140px 1fr; gap:16px; align-items:start}
 .personModalPhoto{
-  width:140px;
-  height:140px;
-  border-radius:18px;
-  object-fit:cover;
+  width:140px; height:140px; border-radius:18px; object-fit:cover;
   border:1px solid rgba(255,255,255,.14);
 }
-.personModalName{font-weight:900; font-size:18px; color:#fff}
+.personModalName{font-weight:700; font-size:18px; color:#fff}
 .personModalRole{font-weight:400; color:rgba(235,242,255,.78); margin-top:4px}
 
 .personContactBox{
@@ -416,13 +406,7 @@ footer{padding:28px 0 40px}
 .personVal{color:#fff}
 
 /* Admin dashboard */
-.adminTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:14px;
-}
+.adminTop{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
 .adminSignedIn{color: rgba(235,242,255,.72); font-size:13px}
 .adminLogout{
   border:1px solid rgba(255,255,255,.12);
@@ -432,7 +416,6 @@ footer{padding:28px 0 40px}
   padding:10px 14px;
   cursor:pointer;
 }
-
 .adminCard{
   border-radius: var(--radius2);
   border:1px solid rgba(255,255,255,.10);
@@ -440,7 +423,7 @@ footer{padding:28px 0 40px}
   padding:16px;
   margin-top:14px;
 }
-.adminCardTitle{font-weight:900; color:#fff}
+.adminCardTitle{font-weight:800; color:#fff}
 .adminCardSub{color:rgba(235,242,255,.65); font-size:13px; margin-top:6px}
 .adminRow{display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap}
 
@@ -450,43 +433,34 @@ footer{padding:28px 0 40px}
   border:1px solid rgba(255,255,255,.08);
   overflow:hidden;
 }
-.adminTable{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
+.adminTable{width:100%; border-collapse:collapse; font-size:13px}
 .adminTable th, .adminTable td{
-  padding:10px 10px;
+  padding:10px;
   border-bottom:1px solid rgba(255,255,255,.06);
   text-align:left;
 }
 .adminTable th{color:rgba(235,242,255,.70); font-weight:700}
 .adminTable td{color:rgba(255,255,255,.88)}
-.adminTableLogs tbody tr{cursor:pointer}
-.adminTableLogs tbody tr:hover{background: rgba(255,255,255,.03)}
 
-.adminLink{
-  border:1px solid rgba(75,132,255,.28);
-  background: rgba(75,132,255,.12);
-  color:#fff;
+.adminLink, .adminDanger{
   border-radius:999px;
   padding:8px 10px;
   cursor:pointer;
+  color:#fff;
+}
+.adminLink{
+  border:1px solid rgba(75,132,255,.28);
+  background: rgba(75,132,255,.12);
   margin-right:8px;
 }
 .adminDanger{
   border:1px solid rgba(255,59,77,.26);
   background: rgba(255,59,77,.10);
-  color:#fff;
-  border-radius:999px;
-  padding:8px 10px;
-  cursor:pointer;
 }
 
 /* Responsive */
 @media (max-width: 900px){
-  .grid2{grid-template-columns:1fr; }
-  .heroImg{margin-top:0}
+  .grid2{grid-template-columns:1fr}
   .teamGrid{grid-template-columns:1fr}
   .svcGrid{grid-template-columns:1fr}
   h1{font-size:28px}
@@ -494,9 +468,9 @@ footer{padding:28px 0 40px}
 @media (max-width: 520px){
   .shell{width:calc(100% - 26px)}
   .headInner{flex-direction:column; align-items:flex-start}
-  .personRole{white-space:normal}
-  .personName{white-space:normal}
+  .personRole,.personName{white-space:normal}
   .personModalGrid{grid-template-columns:1fr}
   .personModalPhoto{width:100%; height:auto; aspect-ratio:1/1}
-  .personContactRow{grid-template-columns: 1fr}
+  .personContactRow{grid-template-columns:1fr}
+  .svcHeader img{max-width:100%}
 }
