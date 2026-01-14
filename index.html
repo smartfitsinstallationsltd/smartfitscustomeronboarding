@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SmartFits | Customer Onboarding</title>
-  <link rel="stylesheet" href="./assets/styles.css" />
+  <link rel="stylesheet" href="./assets/style.css" />
 </head>
 
 <body>
@@ -58,6 +58,7 @@
         </div>
 
         <aside class="media heroMedia">
+          <!-- change margin-top in CSS: .heroImg { margin-top: 10px; } -->
           <img class="heroImg" alt="Introduction image" src="./images/introduction_image.png" loading="lazy" />
         </aside>
       </div>
@@ -98,7 +99,7 @@
         </div>
       </div>
 
-      <!-- CUSTOMER SUCCESS (PYRAMID: EMMA TOP) -->
+      <!-- CUSTOMER SUCCESS -->
       <div class="doc">
         <h3>Customer Success Team</h3>
         <p>
@@ -135,7 +136,7 @@
         </div>
       </div>
 
-      <!-- PROJECT COORDS / FIELD OPS (PYRAMID: ROZ TOP) -->
+      <!-- PROJECT COORDS -->
       <div class="doc">
         <h3>Project Coordinators / Field Operations Support</h3>
         <p>
@@ -306,7 +307,7 @@
     </div>
   </section>
 
-  <!-- ADDITIONAL SERVICES (matches your screenshot layout) -->
+  <!-- ADDITIONAL SERVICES -->
   <section>
     <div class="shell">
       <p class="kicker">Additional Services</p>
@@ -316,10 +317,10 @@
 
       <div class="svcGrid">
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Prolius" src="./images/prolius_logo.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Prolius</div>
             <div class="svcText">
               Prolius Fleet Management is a comprehensive digital platform that helps organisations monitor, manage, and optimise their vehicle fleets by providing integrated tracking, compliance management, driver performance insights and licence checking.
@@ -328,10 +329,10 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Multi-camera systems" src="./images/multi_camera_systems.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Multi-camera systems</div>
             <div class="svcText">
               Integrated into MyGeotab, the multi-camera system delivers seamless access to real-time and recorded video alongside vehicle and driver data, enhancing safety insights, incident review, and fleet operational visibility from a single platform.
@@ -340,10 +341,10 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Live Dash-cams" src="./images/vehicle_dashcam.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Live Dash-cams</div>
             <div class="svcText">
               Integrated into MyGeotab, AI-enabled dash cameras capture and analyse driving behaviour in real time, using advanced algorithms to detect risk, improve driver safety, support coaching, and provide actionable insights directly within a single fleet management platform.
@@ -352,15 +353,66 @@
         </div>
 
         <div class="svcCard">
-          <div class="svcImg">
+          <div class="svcHeader">
             <img alt="Commercial Upgrades" src="./images/commercial_upgrades.png" loading="lazy" />
           </div>
-          <div class="svcBody">
+          <div class="svcContent">
             <div class="svcTitle">Commercial Upgrades</div>
             <div class="svcText">
               Commercial vehicle upgrades such as parking sensors and advanced lighting systems enhance driver awareness, manoeuvring safety, and vehicle visibility, while supporting safer operations and reduced incident risk across the fleet.
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ✅ CANCELLATION POLICY ON HOME SCREEN (boxed like the rest) -->
+  <section>
+    <div class="shell">
+      <p class="kicker">Policy</p>
+      <h2>Cancellation Policy</h2>
+      <div class="accentLine"></div>
+      <div class="lineGap"></div>
+
+      <div class="doc">
+        <p style="margin-top:0;">
+          At SmartFits we are committed to delivering high-quality service through efficient scheduling and resource planning.
+          To ensure fairness to both our clients and our field engineers, the following policy applies regarding cancellations and incomplete work:
+        </p>
+
+        <h3 style="margin-top:14px;">Cancellation Notice</h3>
+        <ul>
+          <li><b>More Than One Business Days’ Notice:</b> Cancellations made with more than one full business day (24 hours) notice will not incur any charge.</li>
+          <li><b>Within One Business Day (24 Hours):</b> Cancellations made within one full business day (24 hours) of the scheduled appointment will be charged at 100% of the originally quoted full price of the job.</li>
+          <li>Business days are defined as Monday to Friday, excluding UK bank holidays. Weekends and bank holidays are not counted as working days for notice periods.</li>
+        </ul>
+
+        <h3 style="margin-top:14px;">If you wish to cancel an appointment:</h3>
+        <ul>
+          <li>Call us on <b>01283 533330</b>, or</li>
+          <li>Email us at <b>support@smartfits.co.uk</b></li>
+        </ul>
+        <p>We recommend email as it provides a date and time stamp for proof of cancellation.</p>
+
+        <h3 style="margin-top:14px;">Incomplete Jobs Due to Client-Side Issues</h3>
+        <p>
+          If our engineer attends site and is unable to complete the scheduled work due to client-side issues
+          (e.g., unavailable vehicles, missing equipment, denied access), it is treated as a late cancellation, and:
+        </p>
+        <ul>
+          <li>The client will be charged 100% of the originally quoted full price.</li>
+          <li>Return visits will charge only for additional time/work to complete remaining tasks.</li>
+        </ul>
+
+        <h3 style="margin-top:14px;">Billing Responsibility</h3>
+        <p>
+          This policy applies to the invoiced party regardless of vehicle or site owner, including third-party installations.
+          Fees/communications will be directed to the established account holder.
+        </p>
+
+        <div style="margin-top:14px;">
+          <button class="chipBtn" type="button" id="openPolicyBtn2">View in popup</button>
         </div>
       </div>
     </div>
@@ -393,7 +445,6 @@
       </div>
 
       <div class="modalBody">
-        <!-- LOGIN VIEW -->
         <div id="adminLoginView">
           <div class="formWrap" style="margin-top:0;">
             <form id="adminLoginForm" autocomplete="off" novalidate>
@@ -419,14 +470,12 @@
           </div>
         </div>
 
-        <!-- DASHBOARD VIEW -->
         <div id="adminDashView" style="display:none;">
           <div class="adminTop">
             <div class="adminSignedIn" id="adminSignedInAs"></div>
             <button class="adminLogout" type="button" id="adminLogoutBtn">Log out</button>
           </div>
 
-          <!-- 1) SEARCH FILES -->
           <div class="adminCard">
             <div class="adminCardTitle">Search files</div>
             <div class="adminCardSub">Search by PDF filename, and optionally filter by date.</div>
@@ -468,7 +517,6 @@
             </div>
           </div>
 
-          <!-- 2) SEND WELCOME EMAIL -->
           <div class="adminCard">
             <div class="adminCardTitle">Send a welcome email</div>
             <div class="adminCardSub">Send a simple welcome email to a new customer contact.</div>
@@ -495,7 +543,6 @@
             </div>
           </div>
 
-          <!-- 3) LOGS (ONLY IF canViewLogs) -->
           <div class="adminCard" id="logsCard" style="display:none;">
             <div class="adminCardTitle">Logs</div>
             <div class="adminCardSub">Only available to authorised admins.</div>
@@ -555,7 +602,7 @@
     </div>
   </div>
 
-  <!-- ✅ TEAM MEMBER MODAL -->
+  <!-- ✅ PERSON MODAL -->
   <div class="modalBackdrop" id="personModal" aria-hidden="true">
     <div class="modal modalMedium" role="dialog" aria-modal="true" aria-labelledby="personTitle">
       <div class="modalHeader">
@@ -566,9 +613,9 @@
     </div>
   </div>
 
-  <!-- ✅ DETAIL MODAL (used for policy + log detail) -->
+  <!-- ✅ DETAIL MODAL -->
   <div class="modalBackdrop" id="detailModal" aria-hidden="true">
-    <div class="modal modalMedium" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal modalMedium" id="detailModalPanel" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
       <div class="modalHeader">
         <div class="title" id="detailTitle">Details</div>
         <button class="closeBtn" type="button" id="closeDetailBtn">Close</button>
@@ -577,7 +624,7 @@
     </div>
   </div>
 
-  <!-- Policy HTML Template (hidden) -->
+  <!-- Policy Template (used in popup) -->
   <template id="policyTemplate">
     <div class="doc">
       <p style="margin-top:0;">
