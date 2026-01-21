@@ -152,20 +152,20 @@ async function postToGAS(payload) {
  *  Team data
  * ------------------------- */
 const TEAM = {
-  tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "01283 533330", img: "./images/tara_hassall.png" },
+  tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "07894 880559", img: "./images/tara_hassall.png" },
   charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
 
-  emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "01283 533330", img: "./images/emma_sumner.png" },
-  kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/kelly_mullen.png" },
-  aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/aleks_fossick.png" },
+  emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "", img: "./images/emma_sumner.png" },
+  kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "kelly@smartfits.co.uk", phone: "", img: "./images/kelly_mullen.png" },
+  aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "aleks@smartfits.co.uk", phone: "", img: "./images/aleks_fossick.png" },
 
-  roz: { name: "Roz Hardwick", role: "Operations Lead", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/roz_hardwick.png" },
-  ellie: { name: "Ellie Topliss", role: "Project Coordinator", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/ellie_topliss.png" },
-  sophie: { name: "Sophie Turner", role: "Project Coordinator", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/sophie_turner.png" },
-  amanda: { name: "Amanda Clarke", role: "Field Operations Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/amanda_clarke.png" },
-  rosie: { name: "Rosie Smart", role: "Field Operations Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/rosie_smart.png" },
-  bridie: { name: "Bridie Southam", role: "Field Operations Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/bridie_southam.png" },
-  kasia: { name: "Kasia Dzielak", role: "Field Operations Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/kasia_dzielak.png" },
+  roz: { name: "Roz Hardwick", role: "Operations Lead", email: "roz@smartfits.co.uk", phone: "", img: "./images/roz_hardwick.png" },
+  ellie: { name: "Ellie Topliss", role: "Project Coordinator", email: "ellie@smartfits.co.uk", phone: "", img: "./images/ellie_topliss.png" },
+  sophie: { name: "Sophie Turner", role: "Project Coordinator", email: "sophie@smartfits.co.uk", phone: "", img: "./images/sophie_turner.png" },
+  amanda: { name: "Amanda Clarke", role: "Field Operations Team Member", email: "amanda@smartfits.co.uk", phone: "", img: "./images/amanda_clarke.png" },
+  rosie: { name: "Rosie Smart", role: "Field Operations Team Member", email: "rosie@smartfits.co.uk", phone: "", img: "./images/rosie_smart.png" },
+  bridie: { name: "Bridie Southam", role: "Field Operations Team Member", email: "bridie@smartfits.co.uk", phone: "", img: "./images/bridie_southam.png" },
+  kasia: { name: "Kasia Dzielak", role: "Field Operations Team Member", email: "kasia@smartfits.co.uk", phone: "", img: "./images/kasia_dzielak.png" },
 };
 
 /** -------------------------
@@ -707,3 +707,4 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
