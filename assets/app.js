@@ -7,10 +7,14 @@ const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
 
 /** -------------------------
- *  Helpers
+ *  DOM helpers
  * ------------------------- */
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+function byId(id) {
+  return document.getElementById(id);
+}
 
 function setText(el, text) {
   if (!el) return;
@@ -29,6 +33,11 @@ function escHtml(s) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function safeVal(id) {
+  const el = byId(id);
+  return el ? String(el.value || "").trim() : "";
 }
 
 /** -------------------------
@@ -117,9 +126,7 @@ function bindEscapeKey() {
 
 /** -------------------------
  *  GAS API helper (CORS-safe)
- *
- *  IMPORTANT:
- *  Use Content-Type: text/plain to avoid OPTIONS preflight.
+ *  IMPORTANT: Content-Type text/plain avoids preflight
  * ------------------------- */
 async function postToGAS(payload) {
   const res = await fetch(GAS_URL, {
@@ -129,6 +136,7 @@ async function postToGAS(payload) {
   });
 
   const text = await res.text();
+
   let json;
   try {
     json = JSON.parse(text);
@@ -204,7 +212,7 @@ function showPerson(personKey) {
 }
 
 /** -------------------------
- *  Policy popup (detail modal)
+ *  Policy popup
  * ------------------------- */
 function showPolicyPopup() {
   const detailModal = $("#detailModal");
@@ -267,12 +275,41 @@ function bindForm() {
   });
 }
 
-/** -------------------------
- *  Admin dashboard
- * ------------------------- */
-let adminToken = null;
+/** =========================================================
+ *  ADMIN AUTH (persisted)
+ *  ========================================================= */
+const LS_TOKEN = "sf_admin_token";
+const LS_ADMIN = "sf_admin_info";
+
+let adminToken = "";
 let adminInfo = null;
 
+function saveAdminSession(token, info) {
+  adminToken = token || "";
+  adminInfo = info || null;
+  if (adminToken) localStorage.setItem(LS_TOKEN, adminToken);
+  else localStorage.removeItem(LS_TOKEN);
+
+  if (adminInfo) localStorage.setItem(LS_ADMIN, JSON.stringify(adminInfo));
+  else localStorage.removeItem(LS_ADMIN);
+}
+
+function loadAdminSession() {
+  adminToken = localStorage.getItem(LS_TOKEN) || "";
+  try {
+    adminInfo = JSON.parse(localStorage.getItem(LS_ADMIN) || "null");
+  } catch {
+    adminInfo = null;
+  }
+}
+
+function clearAdminSession() {
+  saveAdminSession("", null);
+}
+
+/** -------------------------
+ *  Admin view toggles
+ * ------------------------- */
 function setAdminView(isAuthed) {
   const loginView = $("#adminLoginView");
   const dashView = $("#adminDashView");
@@ -288,18 +325,17 @@ function setAdminView(isAuthed) {
   }
 
   if (logsCard) {
-    logsCard.style.display = isAuthed && adminInfo?.canViewLogs ? "block" : "none";
+    // show only if canViewLogs OR if property is missing (failsafe)
+    const allowed = !!(adminInfo?.canViewLogs ?? true);
+    logsCard.style.display = isAuthed && allowed ? "block" : "none";
   }
 }
 
-function safeVal(id) {
-  const el = document.getElementById(id);
-  return el ? String(el.value || "").trim() : "";
-}
-
-/* ---- Admin: Search files (Drive folder via GAS) ---- */
+/** =========================================================
+ *  ADMIN — Search files
+ *  ========================================================= */
 function renderFiles(files) {
-  const tbody = document.getElementById("filesTbody");
+  const tbody = byId("filesTbody");
   if (!tbody) return;
 
   if (!files || !files.length) {
@@ -324,7 +360,7 @@ function renderFiles(files) {
 }
 
 async function handleSearchFiles() {
-  const statusEl = document.getElementById("filesStatus");
+  const statusEl = byId("filesStatus");
 
   if (!adminToken) {
     if (statusEl) statusEl.textContent = "You must be signed in to search files.";
@@ -332,7 +368,7 @@ async function handleSearchFiles() {
   }
 
   const query = safeVal("fileNameQuery");
-  const dateWrap = document.getElementById("dateFilterWrap");
+  const dateWrap = byId("dateFilterWrap");
   const useDates = dateWrap && dateWrap.style.display !== "none";
 
   const fromDate = useDates ? safeVal("dateFrom") : "";
@@ -358,11 +394,16 @@ async function handleSearchFiles() {
   }
 }
 
-/* ---- Admin: Date filter toggle ---- */
 function bindDateToggle() {
-  const btn = document.getElementById("toggleDateFilterBtn");
-  const wrap = document.getElementById("dateFilterWrap");
+  const btn = byId("toggleDateFilterBtn");
+  const wrap = byId("dateFilterWrap");
   if (!btn || !wrap) return;
+
+  // default hidden (in case HTML didn’t set it)
+  if (!wrap.style.display) wrap.style.display = "none";
+
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
 
   btn.addEventListener("click", () => {
     const isOpen = wrap.style.display !== "none";
@@ -371,61 +412,81 @@ function bindDateToggle() {
   });
 }
 
-/* ---- Admin: Welcome email (mailto) ---- */
+function bindSearch() {
+  const btn = byId("searchFilesBtn");
+  if (btn && btn.dataset.bound !== "1") {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", handleSearchFiles);
+  }
+
+  const q = byId("fileNameQuery");
+  if (q && q.dataset.bound !== "1") {
+    q.dataset.bound = "1";
+    q.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearchFiles();
+      }
+    });
+  }
+}
+
+/** =========================================================
+ *  ADMIN — Welcome Email (mailto)
+ *  ========================================================= */
 function buildWelcomeEmailBody(customerName, companyName) {
   const nameLine = customerName ? `Hi ${customerName},` : "Hi (name),";
   const companyLine = companyName
-    ? `We're really please to welcome ${companyName} to join SmartFits in making the roads a safer place.`
-    : `We're really please to welcome (company name) to join SmartFits in making the roads a safer place.`;
+    ? `We're really pleased to welcome ${companyName} to join SmartFits in making the roads a safer place.`
+    : `We're really pleased to welcome (company name) to join SmartFits in making the roads a safer place.`;
 
   const onboardingUrl = "https://smartfitscustomeronboarding.pages.dev/";
 
+  // NOTE: email clients are plain text — we include the URL on its own line for easy clicking
   return `${nameLine}
 
 Welcome to SmartFits Installations LTD.
 
-${companyLine} Please review all necessary information and the onboarding process here. (when pressed here it links them to ${onboardingUrl})
+${companyLine} Please review all necessary information and the onboarding process here:
+${onboardingUrl}
 
 If you need anything at all, please feel free to contact us at:
 
-Support Telephone - 01283 533330
-Support Email- support@smartfits.co.uk
+Support Phone Number - 01283 533330
+Support Email Address - support@smartfits.co.uk
 SmartFits Website: www.smartfits.co.uk
 
-SmartFits Installations LTD
+SMARTFITS INSTALLATIONS LTD
 4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
 
-Accepting an appointment or delivery of goods, constitutes that the terms and conditions (Terms & Conditions (smartfits.co.uk)) have been read and accepted.  
+Accepting an appointment or delivery of goods, constitutes that the terms and conditions (Terms & Conditions (smartfits.co.uk)) have been read and accepted.
 
 Smartfits Installations Limited Registered Office: 4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
 
 Registered in England & Wales.
 The information contained in this e-mail, and any files transmitted with it, is confidential to the intended recipient(s). The dissemination, distribution, copying or disclosure of this message or its contents is prohibited unless authorised by the sender. If you receive this message in error, please immediately notify the sender and delete the message from your system. Unless expressly stated within the body of this communication, the content should not be understood to create any contractual commitments.
-Although we have taken steps to ensure that this e-mail and attachments are free from any virus, we accept no responsibility for any virus they may contain. We advise you to scan all incoming messages and attachments on receipt. Please note that this e-mail has been created in the knowledge that Internet e-mail is not a completely secure communication medium. We advise that you do not communicate with us in this way if you do not accept these risks
+Although we have taken steps to ensure that this e-mail and attachments are free from any virus, we accept no responsibility for any virus they may contain. We advise you to scan all incoming messages and attachments on receipt. Please note that this e-mail has been created in the knowledge that Internet e-mail is not a completely secure communication medium. We advise that you do not communicate with us in this way if you do not accept these risks.
 
 All I.T. Issues with the Customer Onboarding Site should be directed to Finley Hassall (finley@smartfits.co.uk).
 `;
 }
 
 function openMailto(to, subject, body) {
-  // Replace the "(when pressed here...)" text with a real clickable URL line for mail clients:
-  const finalBody = body.replace(
-    /\(when pressed here it links them to https:\/\/smartfitscustomeronboarding\.pages\.dev\/\)/g,
-    `\n${"https://smartfitscustomeronboarding.pages.dev/"}\n`
-  );
-
   const url =
     `mailto:${encodeURIComponent(to || "")}` +
     `?subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(finalBody)}`;
+    `&body=${encodeURIComponent(body)}`;
 
   window.location.href = url;
 }
 
 function bindWelcomeEmail() {
-  const btn = document.getElementById("sendWelcomeBtn");
-  const statusEl = document.getElementById("welcomeStatus");
+  const btn = byId("sendWelcomeBtn");
+  const statusEl = byId("welcomeStatus");
   if (!btn) return;
+
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
 
   btn.addEventListener("click", () => {
     const to = safeVal("welcomeTo");
@@ -445,88 +506,95 @@ function bindWelcomeEmail() {
   });
 }
 
-function renderLogs(logs){
-  const tbody = document.getElementById("logsTbody");
+/** =========================================================
+ *  ADMIN — Logs (FIXED)
+ *  Expects IDs (if present):
+ *    - loadLogsBtn
+ *    - logsStatus
+ *    - logsTbody
+ * ========================================================= */
+function renderLogs(rows) {
+  const tbody = byId("logsTbody");
   if (!tbody) return;
 
-  if (!logs || !logs.length){
+  if (!rows || !rows.length) {
     tbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = logs.map(l => `
-    <tr>
-      <td>${escapeHtml(l.timestamp || "")}</td>
-      <td>${escapeHtml(l.admin || l.email || "")}</td>
-      <td>${escapeHtml(l.action || "")}</td>
-      <td>${escapeHtml(l.details || "")}</td>
-    </tr>
-  `).join("");
+  // We try to support multiple return shapes
+  // expected each log: { ts, level, action, message } but we fall back safely
+  tbody.innerHTML = rows
+    .map((r) => {
+      const ts = escHtml(r.ts || r.time || r.created || "");
+      const lvl = escHtml(r.level || r.type || "");
+      const act = escHtml(r.action || r.event || "");
+      const msg = escHtml(r.message || r.msg || r.detail || "");
+      return `
+        <tr>
+          <td>${ts}</td>
+          <td>${lvl}</td>
+          <td>${act}</td>
+          <td>${msg}</td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
-async function handleLoadLogs(){
-  const token = getToken();
-  if (!token){
-    setText("logsStatus", "You must be signed in to view logs.");
+async function handleLoadLogs() {
+  const statusEl = byId("logsStatus");
+
+  if (!adminToken) {
+    if (statusEl) statusEl.textContent = "You must be signed in to load logs.";
     return;
   }
 
-  const fromDate = safeVal("logFrom");
-  const toDate = safeVal("logTo");
-  const emailContains = safeVal("logEmailContains");
-  const actionType = safeVal("logActionType") || "ALL";
+  try {
+    if (statusEl) statusEl.textContent = "Loading logs…";
 
-  try{
-    setText("logsStatus", "Loading…");
+    // Try common action names (so you don't get stuck if your Code.gs uses a slightly different one)
+    const actionsToTry = ["getLogs", "loadLogs", "listLogs"];
 
-    // ✅ Calls Apps Script action: listLogs (your Code.gs must support this)
-    const data = await apiPost({
-      action: "listLogs",
-      token,
-      fromDate: fromDate || null,
-      toDate: toDate || null,
-      emailContains: emailContains || null,
-      actionType
-    });
+    let json = null;
+    let lastErr = null;
 
-    const logs = data.logs || data.result?.logs || [];
-    renderLogs(logs);
-    setText("logsStatus", logs.length ? `Loaded ${logs.length} log(s).` : "No logs found.");
-  }catch(err){
-    setText("logsStatus", err.message || "Load logs failed.");
+    for (const action of actionsToTry) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        json = await postToGAS({ action, token: adminToken });
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+
+    if (!json) throw lastErr || new Error("Failed to load logs.");
+
+    const rows = json.logs || json.rows || json.items || [];
+    renderLogs(rows);
+
+    if (statusEl) statusEl.textContent = rows.length ? `Loaded ${rows.length} log(s).` : "No logs found.";
+  } catch (err) {
     renderLogs([]);
+    if (statusEl) statusEl.textContent = `❌ ${err.message}`;
   }
 }
 
-function bindLogs(){
-  const btn = document.getElementById("loadLogsBtn");
+function bindLogs() {
+  const btn = byId("loadLogsBtn");
   if (!btn) return;
+
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
   btn.addEventListener("click", handleLoadLogs);
 }
 
-/* ---- Admin: bind dashboard buttons (only once) ---- */
-function bindAdminDashboardButtons() {
-  // search
-  const searchBtn = document.getElementById("searchFilesBtn");
-  if (searchBtn) searchBtn.addEventListener("click", handleSearchFiles);
-
-  // enter key on filename triggers search
-  const q = document.getElementById("fileNameQuery");
-  if (q) {
-    q.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleSearchFiles();
-      }
-    });
-  }
-
-  // date toggle + welcome email
-  bindDateToggle();
-  bindWelcomeEmail();
-  bindLogs();
-}
-
+/** -------------------------
+ *  Admin modal + login
+ * ------------------------- */
 function bindAdmin() {
   const adminModal = $("#adminModal");
   if (!adminModal) return;
@@ -540,6 +608,9 @@ function bindAdmin() {
   const adminClearBtn = $("#adminClearBtn");
 
   bindBackdropClose(adminModal, closeAdminBtn);
+
+  // Restore session if any
+  loadAdminSession();
 
   if (openAdminBtn) {
     openAdminBtn.addEventListener("click", () => {
@@ -566,14 +637,11 @@ function bindAdmin() {
 
       try {
         const json = await postToGAS({ action: "adminLogin", email, password });
-        adminToken = json.token;
-        adminInfo = json.admin;
+
+        saveAdminSession(json.token, json.admin);
 
         setText(adminStatus, "✅ Signed in.");
         setAdminView(true);
-
-        // ✅ make sure admin dashboard buttons are wired after login
-        bindAdminDashboardButtons();
       } catch (err) {
         setText(adminStatus, `❌ ${err.message}`);
       }
@@ -582,15 +650,20 @@ function bindAdmin() {
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      adminToken = null;
-      adminInfo = null;
+      clearAdminSession();
       setAdminView(false);
-      closeAllModals(); // back to normal page
+      closeAllModals();
     });
   }
 
-  // Also bind dashboard buttons even before login (safe; handlers check adminToken)
-  bindAdminDashboardButtons();
+  // Bind admin dashboard buttons (safe even before login)
+  bindSearch();
+  bindDateToggle();
+  bindWelcomeEmail();
+  bindLogs();
+
+  // If already logged in from storage, show proper view when modal opens
+  setAdminView(!!adminToken);
 }
 
 /** -------------------------
@@ -634,4 +707,3 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
-
