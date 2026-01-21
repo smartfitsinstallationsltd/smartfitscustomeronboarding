@@ -163,8 +163,8 @@ header{
   box-shadow: var(--shadow2);
 }
 
-/* ✅ PULL HERO IMAGE DOWN BY 105PX */
-.heroMedia{ margin-top:105px; }
+/* ✅ PULL HERO IMAGE DOWN BY 109PX */
+.heroMedia{ margin-top:109px; }
 .heroMedia img{
   width:100%;
   height:300px;
@@ -708,5 +708,6 @@ body.modalOpen{ overflow:hidden; }
 #adminModal #loadLogsBtn{
   margin-top:10px;
 }
+
 
 
