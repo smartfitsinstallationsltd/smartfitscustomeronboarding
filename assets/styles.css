@@ -704,5 +704,6 @@ body.modalOpen{ overflow:hidden; }
 
 /* Optional: tighten spacing so it looks cleaner */
 #adminModal .adminRow{
-  margin-top:6px;
+  margin-top:20px;
 }
+
