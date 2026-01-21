@@ -564,3 +564,145 @@ body.modalOpen{ overflow:hidden; }
   .actions{ flex-direction:column; }
   .actions button{ width:100%; }
 }
+
+/* =========================================================
+   ADMIN DASHBOARD — UI to match site (ADD TO BOTTOM)
+   ========================================================= */
+
+.adminTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.adminSignedIn{
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* Make the logout look like a chip button (same style as header button) */
+.adminLogout{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  padding:9px 14px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  transition:.18s ease;
+}
+.adminLogout:hover{
+  border-color:rgba(75,132,255,.55);
+  background:rgba(75,132,255,.10);
+}
+.adminLogout:active{ transform:translateY(1px); }
+
+/* Secondary button used in admin dashboard */
+.ghostBtn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+  padding:9px 14px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:600;
+  transition:.18s ease;
+}
+.ghostBtn:hover{
+  border-color:rgba(75,132,255,.45);
+  background:rgba(75,132,255,.08);
+}
+.ghostBtn:active{ transform:translateY(1px); }
+
+/* Admin cards: match the site "doc" look */
+.adminCard{
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:var(--r20);
+  padding:18px;
+  box-shadow: var(--shadow2);
+  margin-bottom:14px;
+}
+
+.adminCardTitle{
+  font-size:16px;
+  font-weight:800;
+  margin:0 0 6px;
+}
+
+.adminCardSub{
+  color:var(--muted);
+  font-size:13px;
+  margin:0 0 12px;
+  line-height:1.55;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+/* Admin table wrapper + table styling */
+.adminTableWrap{
+  margin-top:12px;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.02);
+}
+
+.adminTable{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.adminTable th,
+.adminTable td{
+  text-align:left;
+  padding:10px 10px;
+  font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.adminTable th{
+  color:var(--muted);
+  background:rgba(255,255,255,.03);
+  font-weight:700;
+}
+
+.adminTable td{
+  color:var(--text);
+}
+
+.adminTable tr:last-child td{ border-bottom:none; }
+
+/* Small action links/buttons inside the table */
+.adminTable a,
+.adminTable button{
+  color:var(--text);
+  text-decoration:underline;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  font:inherit;
+}
+.adminTable a:hover,
+.adminTable button:hover{
+  color:var(--brand2);
+}
+
+/* Keep the admin modal feeling like the rest of the site */
+#adminModal .modalBody{
+  padding:16px;
+}
+
+/* Optional: tighten spacing so it looks cleaner */
+#adminModal .adminRow{
+  margin-top:6px;
+}
