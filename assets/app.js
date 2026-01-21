@@ -388,8 +388,8 @@ ${companyLine} Please review all necessary information and the onboarding proces
 
 If you need anything at all, please feel free to contact us at:
 
-Support Phone Number - 01283 533330
-Support Email Address - support@smartfits.co.uk
+Support Telephone - 01283 533330
+Support Email- support@smartfits.co.uk
 SmartFits Website: www.smartfits.co.uk
 
 SmartFits Installations LTD
@@ -445,6 +445,65 @@ function bindWelcomeEmail() {
   });
 }
 
+function renderLogs(logs){
+  const tbody = document.getElementById("logsTbody");
+  if (!tbody) return;
+
+  if (!logs || !logs.length){
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">No logs found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = logs.map(l => `
+    <tr>
+      <td>${escapeHtml(l.timestamp || "")}</td>
+      <td>${escapeHtml(l.admin || l.email || "")}</td>
+      <td>${escapeHtml(l.action || "")}</td>
+      <td>${escapeHtml(l.details || "")}</td>
+    </tr>
+  `).join("");
+}
+
+async function handleLoadLogs(){
+  const token = getToken();
+  if (!token){
+    setText("logsStatus", "You must be signed in to view logs.");
+    return;
+  }
+
+  const fromDate = safeVal("logFrom");
+  const toDate = safeVal("logTo");
+  const emailContains = safeVal("logEmailContains");
+  const actionType = safeVal("logActionType") || "ALL";
+
+  try{
+    setText("logsStatus", "Loading…");
+
+    // ✅ Calls Apps Script action: listLogs (your Code.gs must support this)
+    const data = await apiPost({
+      action: "listLogs",
+      token,
+      fromDate: fromDate || null,
+      toDate: toDate || null,
+      emailContains: emailContains || null,
+      actionType
+    });
+
+    const logs = data.logs || data.result?.logs || [];
+    renderLogs(logs);
+    setText("logsStatus", logs.length ? `Loaded ${logs.length} log(s).` : "No logs found.");
+  }catch(err){
+    setText("logsStatus", err.message || "Load logs failed.");
+    renderLogs([]);
+  }
+}
+
+function bindLogs(){
+  const btn = document.getElementById("loadLogsBtn");
+  if (!btn) return;
+  btn.addEventListener("click", handleLoadLogs);
+}
+
 /* ---- Admin: bind dashboard buttons (only once) ---- */
 function bindAdminDashboardButtons() {
   // search
@@ -465,6 +524,7 @@ function bindAdminDashboardButtons() {
   // date toggle + welcome email
   bindDateToggle();
   bindWelcomeEmail();
+  bindLogs();
 }
 
 function bindAdmin() {
@@ -574,3 +634,4 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
