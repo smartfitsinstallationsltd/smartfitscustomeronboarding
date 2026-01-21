@@ -155,7 +155,7 @@ const TEAM = {
   tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "07894 880559", img: "./images/tara_hassall.png" },
   charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
 
-  emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "", img: "./images/emma_sumner.png" },
+  emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "Not Available - If you wish to call Emma, Call General Support at 01283 533330, and request Emma.", img: "./images/emma_sumner.png" },
   kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "kelly@smartfits.co.uk", phone: "", img: "./images/kelly_mullen.png" },
   aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "aleks@smartfits.co.uk", phone: "", img: "./images/aleks_fossick.png" },
 
@@ -707,4 +707,5 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
 
