@@ -13,11 +13,13 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 function setText(el, text) {
-  if (el) el.textContent = text ?? "";
+  if (!el) return;
+  el.textContent = text ?? "";
 }
 
 function setHtml(el, html) {
-  if (el) el.innerHTML = html ?? "";
+  if (!el) return;
+  el.innerHTML = html ?? "";
 }
 
 function escHtml(s) {
@@ -118,19 +120,15 @@ function bindEscapeKey() {
  *
  *  IMPORTANT:
  *  Use Content-Type: text/plain to avoid OPTIONS preflight.
- *  Your Apps Script still receives JSON string in e.postData.contents,
- *  so JSON.parse(raw) works exactly the same.
  * ------------------------- */
 async function postToGAS(payload) {
   const res = await fetch(GAS_URL, {
     method: "POST",
-    // ✅ SIMPLE REQUEST, avoids preflight:
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload),
   });
 
   const text = await res.text();
-
   let json;
   try {
     json = JSON.parse(text);
@@ -148,6 +146,7 @@ async function postToGAS(payload) {
 const TEAM = {
   tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "01283 533330", img: "./images/tara_hassall.png" },
   charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
+
   emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "01283 533330", img: "./images/emma_sumner.png" },
   kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/kelly_mullen.png" },
   aleks: { name: "Aleks Fossick", role: "Customer Success Team Member", email: "support@smartfits.co.uk", phone: "01283 533330", img: "./images/aleks_fossick.png" },
@@ -284,14 +283,188 @@ function setAdminView(isAuthed) {
   if (dashView) dashView.style.display = isAuthed ? "block" : "none";
 
   if (signedInAs) {
-    signedInAs.textContent = isAuthed && adminInfo
-      ? `Signed in as: ${adminInfo.name} (${adminInfo.email})`
-      : "";
+    signedInAs.textContent =
+      isAuthed && adminInfo ? `Signed in as: ${adminInfo.name} (${adminInfo.email})` : "";
   }
 
   if (logsCard) {
     logsCard.style.display = isAuthed && adminInfo?.canViewLogs ? "block" : "none";
   }
+}
+
+function safeVal(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.value || "").trim() : "";
+}
+
+/* ---- Admin: Search files (Drive folder via GAS) ---- */
+function renderFiles(files) {
+  const tbody = document.getElementById("filesTbody");
+  if (!tbody) return;
+
+  if (!files || !files.length) {
+    tbody.innerHTML = `<tr><td colspan="3" class="muted">No results found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = files
+    .map((f) => {
+      const name = escHtml(f.name || "");
+      const created = escHtml(f.created || "");
+      const url = f.url || "#";
+      return `
+        <tr>
+          <td><a href="${url}" target="_blank" rel="noopener noreferrer">${name}</a></td>
+          <td>${created}</td>
+          <td><a href="${url}" target="_blank" rel="noopener noreferrer">Open</a></td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+async function handleSearchFiles() {
+  const statusEl = document.getElementById("filesStatus");
+
+  if (!adminToken) {
+    if (statusEl) statusEl.textContent = "You must be signed in to search files.";
+    return;
+  }
+
+  const query = safeVal("fileNameQuery");
+  const dateWrap = document.getElementById("dateFilterWrap");
+  const useDates = dateWrap && dateWrap.style.display !== "none";
+
+  const fromDate = useDates ? safeVal("dateFrom") : "";
+  const toDate = useDates ? safeVal("dateTo") : "";
+
+  try {
+    if (statusEl) statusEl.textContent = "Searching…";
+
+    const json = await postToGAS({
+      action: "listFiles",
+      token: adminToken,
+      query,
+      fromDate: fromDate || null,
+      toDate: toDate || null,
+    });
+
+    const files = json.files || [];
+    renderFiles(files);
+    if (statusEl) statusEl.textContent = files.length ? `Found ${files.length} file(s).` : "No results found.";
+  } catch (err) {
+    renderFiles([]);
+    if (statusEl) statusEl.textContent = `❌ ${err.message}`;
+  }
+}
+
+/* ---- Admin: Date filter toggle ---- */
+function bindDateToggle() {
+  const btn = document.getElementById("toggleDateFilterBtn");
+  const wrap = document.getElementById("dateFilterWrap");
+  if (!btn || !wrap) return;
+
+  btn.addEventListener("click", () => {
+    const isOpen = wrap.style.display !== "none";
+    wrap.style.display = isOpen ? "none" : "block";
+    btn.textContent = isOpen ? "Search by date too?" : "Hide date filter";
+  });
+}
+
+/* ---- Admin: Welcome email (mailto) ---- */
+function buildWelcomeEmailBody(customerName, companyName) {
+  const nameLine = customerName ? `Hi ${customerName},` : "Hi (name),";
+  const companyLine = companyName
+    ? `We're really please to welcome ${companyName} to join SmartFits in making the roads a safer place.`
+    : `We're really please to welcome (company name) to join SmartFits in making the roads a safer place.`;
+
+  const onboardingUrl = "https://smartfitscustomeronboarding.pages.dev/";
+
+  return `${nameLine}
+
+Welcome to SmartFits Installations LTD.
+
+${companyLine} Please review all necessary information and the onboarding process here. (when pressed here it links them to ${onboardingUrl})
+
+If you need anything at all, please feel free to contact us at:
+
+Support Phone Number - 01283 533330
+Support Email Address - support@smartfits.co.uk
+SmartFits Website: www.smartfits.co.uk
+
+SmartFits Installations LTD
+4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
+
+Accepting an appointment or delivery of goods, constitutes that the terms and conditions (Terms & Conditions (smartfits.co.uk)) have been read and accepted.  
+
+Smartfits Installations Limited Registered Office: 4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
+
+Registered in England & Wales.
+The information contained in this e-mail, and any files transmitted with it, is confidential to the intended recipient(s). The dissemination, distribution, copying or disclosure of this message or its contents is prohibited unless authorised by the sender. If you receive this message in error, please immediately notify the sender and delete the message from your system. Unless expressly stated within the body of this communication, the content should not be understood to create any contractual commitments.
+Although we have taken steps to ensure that this e-mail and attachments are free from any virus, we accept no responsibility for any virus they may contain. We advise you to scan all incoming messages and attachments on receipt. Please note that this e-mail has been created in the knowledge that Internet e-mail is not a completely secure communication medium. We advise that you do not communicate with us in this way if you do not accept these risks
+
+All I.T. Issues with the Customer Onboarding Site should be directed to Finley Hassall (finley@smartfits.co.uk).
+`;
+}
+
+function openMailto(to, subject, body) {
+  // Replace the "(when pressed here...)" text with a real clickable URL line for mail clients:
+  const finalBody = body.replace(
+    /\(when pressed here it links them to https:\/\/smartfitscustomeronboarding\.pages\.dev\/\)/g,
+    `\n${"https://smartfitscustomeronboarding.pages.dev/"}\n`
+  );
+
+  const url =
+    `mailto:${encodeURIComponent(to || "")}` +
+    `?subject=${encodeURIComponent(subject)}` +
+    `&body=${encodeURIComponent(finalBody)}`;
+
+  window.location.href = url;
+}
+
+function bindWelcomeEmail() {
+  const btn = document.getElementById("sendWelcomeBtn");
+  const statusEl = document.getElementById("welcomeStatus");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const to = safeVal("welcomeTo");
+    const customerName = safeVal("welcomeCustomer");
+    const companyName = safeVal("welcomeCompany");
+
+    if (!to) {
+      if (statusEl) statusEl.textContent = "Please enter the customer email (recipient).";
+      return;
+    }
+
+    const subject = "Welcome to SmartFits Installations LTD";
+    const body = buildWelcomeEmailBody(customerName, companyName);
+
+    openMailto(to, subject, body);
+    if (statusEl) statusEl.textContent = "Opening email draft…";
+  });
+}
+
+/* ---- Admin: bind dashboard buttons (only once) ---- */
+function bindAdminDashboardButtons() {
+  // search
+  const searchBtn = document.getElementById("searchFilesBtn");
+  if (searchBtn) searchBtn.addEventListener("click", handleSearchFiles);
+
+  // enter key on filename triggers search
+  const q = document.getElementById("fileNameQuery");
+  if (q) {
+    q.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearchFiles();
+      }
+    });
+  }
+
+  // date toggle + welcome email
+  bindDateToggle();
+  bindWelcomeEmail();
 }
 
 function bindAdmin() {
@@ -335,8 +508,12 @@ function bindAdmin() {
         const json = await postToGAS({ action: "adminLogin", email, password });
         adminToken = json.token;
         adminInfo = json.admin;
+
         setText(adminStatus, "✅ Signed in.");
         setAdminView(true);
+
+        // ✅ make sure admin dashboard buttons are wired after login
+        bindAdminDashboardButtons();
       } catch (err) {
         setText(adminStatus, `❌ ${err.message}`);
       }
@@ -348,10 +525,12 @@ function bindAdmin() {
       adminToken = null;
       adminInfo = null;
       setAdminView(false);
-      closeModal(adminModal);
-      closeAllModals();
+      closeAllModals(); // back to normal page
     });
   }
+
+  // Also bind dashboard buttons even before login (safe; handlers check adminToken)
+  bindAdminDashboardButtons();
 }
 
 /** -------------------------
@@ -394,242 +573,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Init failed:", err);
     closeAllModals();
   }
-});
-
-/* =========================================================
-   ADMIN DASHBOARD — FIX BUTTONS (Search / Date Toggle / Welcome Email)
-   ========================================================= */
-
-const API_ENDPOINT = "/api"; // <-- keep as /api if your Pages Function proxies to Apps Script
-
-function $(id){ return document.getElementById(id); }
-
-function safeVal(id){
-  const el = $(id);
-  return el ? String(el.value || "").trim() : "";
-}
-
-function setText(id, txt){
-  const el = $(id);
-  if (el) el.textContent = txt;
-}
-
-async function apiPost(payload){
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  // If your proxy returns non-JSON on error, this prevents "Unexpected token" issues.
-  const text = await res.text();
-  let data;
-  try { data = JSON.parse(text); }
-  catch {
-    throw new Error(text || `Request failed (${res.status})`);
-  }
-
-  if (!res.ok || data?.ok === false){
-    throw new Error(data?.error || `Request failed (${res.status})`);
-  }
-  return data;
-}
-
-/* ---------- State (token + admin) ---------- */
-function getToken(){
-  return localStorage.getItem("sf_admin_token") || "";
-}
-function getAdmin(){
-  try { return JSON.parse(localStorage.getItem("sf_admin_info") || "null"); }
-  catch { return null; }
-}
-
-/* =========================================================
-   1) Toggle date filter
-   ========================================================= */
-function bindDateToggle(){
-  const btn = $("toggleDateFilterBtn");
-  const wrap = $("dateFilterWrap");
-  if (!btn || !wrap) return;
-
-  btn.addEventListener("click", () => {
-    const isOpen = wrap.style.display !== "none";
-    wrap.style.display = isOpen ? "none" : "block";
-    btn.textContent = isOpen ? "Search by date too?" : "Hide date filter";
-  });
-}
-
-/* =========================================================
-   2) Search files (Drive folder via your backend)
-   ========================================================= */
-function renderFiles(files){
-  const tbody = $("filesTbody");
-  if (!tbody) return;
-
-  if (!files || !files.length){
-    tbody.innerHTML = `<tr><td colspan="3" class="muted">No results found.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = files.map(f => {
-    const safeName = escapeHtml(f.name || "");
-    const safeCreated = escapeHtml(f.created || "");
-    const safeUrl = f.url || "#";
-    return `
-      <tr>
-        <td><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeName}</a></td>
-        <td>${safeCreated}</td>
-        <td><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Open</a></td>
-      </tr>
-    `;
-  }).join("");
-}
-
-async function handleSearchFiles(){
-  const token = getToken();
-  if (!token){
-    setText("filesStatus", "You must be signed in to search files.");
-    return;
-  }
-
-  const query = safeVal("fileNameQuery");
-  const dateWrap = $("dateFilterWrap");
-  const useDates = dateWrap && dateWrap.style.display !== "none";
-
-  const fromDate = useDates ? safeVal("dateFrom") : "";
-  const toDate   = useDates ? safeVal("dateTo") : "";
-
-  try{
-    setText("filesStatus", "Searching…");
-
-    // Calls Apps Script action: listFiles (your Code.gs supports this)
-    const data = await apiPost({
-      action: "listFiles",
-      token,
-      query,
-      fromDate: fromDate || null,
-      toDate: toDate || null
-    });
-
-    const files = data.files || data.result?.files || [];
-    renderFiles(files);
-    setText("filesStatus", files.length ? `Found ${files.length} file(s).` : "No results found.");
-  }catch(err){
-    setText("filesStatus", err.message || "Search failed.");
-    renderFiles([]);
-  }
-}
-
-function bindSearch(){
-  const btn = $("searchFilesBtn");
-  if (!btn) return;
-  btn.addEventListener("click", handleSearchFiles);
-
-  // Optional: Enter key in filename input triggers search
-  const q = $("fileNameQuery");
-  if (q){
-    q.addEventListener("keydown", (e) => {
-      if (e.key === "Enter"){
-        e.preventDefault();
-        handleSearchFiles();
-      }
-    });
-  }
-}
-
-/* =========================================================
-   3) Welcome email (mailto: opens user's Outlook/Apple Mail/etc)
-   ========================================================= */
-function buildWelcomeEmailBody(customerName, companyName){
-  const nameLine = customerName ? `Hi ${customerName},` : "Hi,";
-  const companyLine = companyName ? `We're really please to welcome ${companyName} to join SmartFits in making the roads a safer place.` :
-                                    `We're really please to welcome your team to join SmartFits in making the roads a safer place.`;
-
-  // NOTE: mailto bodies are plain text; include the URL directly
-  const onboardingUrl = "https://smartfitscustomeronboarding.pages.dev/";
-
-  const body =
-`${nameLine}
-
-Welcome to SmartFits Installations LTD.
-
-${companyLine} Please review all necessary information and the onboarding process here:
-${onboardingUrl}
-
-If you need anything at all, please feel free to contact us at:
-
-Support Phone Number - 01283 533330
-Support Email Address - support@smartfits.co.uk
-SmartFits Website: www.smartfits.co.uk
-
-SMARTFITS INSTALLATIONS LTD
-4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
-
-Accepting an appointment or delivery of goods, constitutes that the terms and conditions have been read and accepted:
-Terms & Conditions (smartfits.co.uk)
-
-Smartfits Installations Limited Registered Office: 4 Eastgate Business Centre, Eastern Avenue, Stretton, Burton on Trent, DE13 0AT
-
-Registered in England & Wales.
-The information contained in this e-mail, and any files transmitted with it, is confidential to the intended recipient(s). The dissemination, distribution, copying or disclosure of this message or its contents is prohibited unless authorised by the sender. If you receive this message in error, please immediately notify the sender and delete the message from your system. Unless expressly stated within the body of this communication, the content should not be understood to create any contractual commitments.
-Although we have taken steps to ensure that this e-mail and attachments are free from any virus, we accept no responsibility for any virus they may contain. We advise you to scan all incoming messages and attachments on receipt. Please note that this e-mail has been created in the knowledge that Internet e-mail is not a completely secure communication medium. We advise that you do not communicate with us in this way if you do not accept these risks.
-
-All I.T. Issues with the Customer Onboarding Site should be directed to Finley Hassall (finley@smartfits.co.uk).
-`;
-  return body;
-}
-
-function openMailto(to, subject, body){
-  const url =
-    `mailto:${encodeURIComponent(to || "")}` +
-    `?subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
-
-  window.location.href = url;
-}
-
-function bindWelcomeEmail(){
-  const btn = $("sendWelcomeBtn");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const to = safeVal("welcomeTo");
-    const customerName = safeVal("welcomeCustomer");
-    const companyName = safeVal("welcomeCompany");
-
-    if (!to){
-      setText("welcomeStatus", "Please enter the customer email (recipient).");
-      return;
-    }
-
-    const subject = "Welcome to SmartFits Installations LTD";
-    const body = buildWelcomeEmailBody(customerName, companyName);
-
-    // This opens the user's default email app (Outlook/Apple Mail/etc)
-    openMailto(to, subject, body);
-
-    // Optional UI feedback
-    setText("welcomeStatus", "Opening email draft…");
-  });
-}
-
-/* =========================================================
-   Small helper
-   ========================================================= */
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-/* =========================================================
-   INIT — call after DOM loads
-   ========================================================= */
-document.addEventListener("DOMContentLoaded", () => {
-  bindDateToggle();
-  bindSearch();
-  bindWelcomeEmail();
 });
