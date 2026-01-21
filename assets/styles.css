@@ -164,7 +164,7 @@ header{
 }
 
 /* ✅ PULL HERO IMAGE DOWN BY 150PX */
-.heroMedia{ margin-top:150px; }
+.heroMedia{ margin-top:100px; }
 .heroMedia img{
   width:100%;
   height:300px;
@@ -708,3 +708,4 @@ body.modalOpen{ overflow:hidden; }
 #adminModal #loadLogsBtn{
   margin-top:10px;
 }
+
