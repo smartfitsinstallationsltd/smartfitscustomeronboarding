@@ -5,6 +5,9 @@
 /** 🔧 Your Google Apps Script Web App URL (ends with /exec) */
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxJ48d-Ykqvmvdwbhv4eJG_aJDySvl_rVtbjSNu-TrsrNylmdPm2NqYO5a97BY4tR-Ycg/exec";
+const SUPPORT_GAS_URL = "https://script.google.com/macros/s/AKfycbxVJUYVAYAKm0g1vjxdvkxeA4gUfcWJiKu_rhigZXtkJpWoPd81AcOcPcoAXoYWNAvl/exec";
+const SUPPORT_SECRET = "JNABSJKDLhu23h4y89uhasdakdj238dafjh87243Yjuhjkashd789234yrJKD"; // must match Code.gs
+
 
 /** -------------------------
  *  DOM helpers
@@ -481,14 +484,11 @@ function openMailto(to, subject, body) {
 }
 
 function bindWelcomeEmail() {
-  const btn = byId("sendWelcomeBtn");
-  const statusEl = byId("welcomeStatus");
+  const btn = document.getElementById("sendWelcomeBtn");
+  const statusEl = document.getElementById("welcomeStatus");
   if (!btn) return;
 
-  if (btn.dataset.bound === "1") return;
-  btn.dataset.bound = "1";
-
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const to = safeVal("welcomeTo");
     const customerName = safeVal("welcomeCustomer");
     const companyName = safeVal("welcomeCompany");
@@ -498,11 +498,30 @@ function bindWelcomeEmail() {
       return;
     }
 
-    const subject = "Welcome to SmartFits Installations LTD";
-    const body = buildWelcomeEmailBody(customerName, companyName);
+    try {
+      if (statusEl) statusEl.textContent = "Sending…";
 
-    openMailto(to, subject, body);
-    if (statusEl) statusEl.textContent = "Opening email draft…";
+      const res = await fetch(SUPPORT_GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids preflight
+        body: JSON.stringify({
+          action: "sendWelcomeEmail",
+          secret: SUPPORT_SECRET,
+          to,
+          customerName,
+          companyName
+        }),
+      });
+
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); } catch { throw new Error(text); }
+
+      if (!json.ok) throw new Error(json.error || "Failed to send");
+      if (statusEl) statusEl.textContent = `✅ Sent to ${to}`;
+    } catch (err) {
+      if (statusEl) statusEl.textContent = `❌ ${err.message}`;
+    }
   });
 }
 
@@ -707,6 +726,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
 
 
 
