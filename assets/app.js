@@ -483,15 +483,26 @@ function openMailto(to, subject, body) {
   window.location.href = url;
 }
 
+/** =========================================================
+ *  ADMIN — Welcome Email (SEND VIA OLD GAS, NOT DIRECT)
+ *  ========================================================= */
 function bindWelcomeEmail() {
   const btn = document.getElementById("sendWelcomeBtn");
   const statusEl = document.getElementById("welcomeStatus");
   if (!btn) return;
 
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
   btn.addEventListener("click", async () => {
     const to = safeVal("welcomeTo");
     const customerName = safeVal("welcomeCustomer");
     const companyName = safeVal("welcomeCompany");
+
+    if (!adminToken) {
+      if (statusEl) statusEl.textContent = "Please sign in as an admin first.";
+      return;
+    }
 
     if (!to) {
       if (statusEl) statusEl.textContent = "Please enter the customer email (recipient).";
@@ -501,29 +512,22 @@ function bindWelcomeEmail() {
     try {
       if (statusEl) statusEl.textContent = "Sending…";
 
-      const res = await fetch(SUPPORT_GAS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids preflight
-        body: JSON.stringify({
-          action: "sendWelcomeEmail",
-          secret: SUPPORT_SECRET,
-          to,
-          customerName,
-          companyName
-        }),
+      // ✅ Send to OLD GAS (same one your site already talks to)
+      const json = await postToGAS({
+        action: "sendWelcomeEmail",
+        token: adminToken,
+        to,
+        customerName,
+        companyName
       });
 
-      const text = await res.text();
-      let json;
-      try { json = JSON.parse(text); } catch { throw new Error(text); }
-
-      if (!json.ok) throw new Error(json.error || "Failed to send");
-      if (statusEl) statusEl.textContent = `✅ Sent to ${to}`;
+      if (statusEl) statusEl.textContent = `✅ Sent to ${to}${json.cc ? ` (CC: ${json.cc})` : ""}`;
     } catch (err) {
       if (statusEl) statusEl.textContent = `❌ ${err.message}`;
     }
   });
 }
+
 
 /** =========================================================
  *  ADMIN — Logs (FIXED)
@@ -726,6 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
 
 
 
