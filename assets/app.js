@@ -170,6 +170,8 @@ const TEAM = {
   rosie: { name: "Rosie Smart", role: "Field Operations Team Member", email: "rosie@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/rosie_smart.png" },
   bridie: { name: "Bridie Southam", role: "Field Operations Team Member", email: "bridie@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/bridie_southam.png" },
   kasia: { name: "Kasia Dzielak", role: "Field Operations Team Member", email: "kasia@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/kasia_dzielak.png" },
+  danielle: { name: "Danielle McQuillan", role: "Field Operations Team Member", email: "danielle@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/danielle_mcquillan.png" },
+  lauren: { name: "Lauren Richards", role: "Field Operations Team Member", email: "lauren@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/lauren_richards.png" },
 };
 
 /** -------------------------
@@ -731,6 +733,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
 
 
 
