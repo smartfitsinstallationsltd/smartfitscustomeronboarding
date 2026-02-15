@@ -157,6 +157,7 @@ async function postToGAS(payload) {
 const TEAM = {
   tara: { name: "Tara Hassall", role: "Managing Director", email: "tara@smartfits.co.uk", phone: "07894 880559", img: "./images/tara_hassall.png" },
   charlie: { name: "Charlie Inger", role: "Sales & Business Development Manager", email: "charlie@smartfits.co.uk", phone: "07385 099620", img: "./images/charlie_inger.png" },
+   chloe: { name: "Chloe Hassall", role: "Strategic Accounts & Client Relationships Lead", email: "chloe@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/chloe_hassall.png" },
 
   emma: { name: "Emma Sumner", role: "Customer Success Team Leader", email: "emma@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/emma_sumner.png" },
   kelly: { name: "Kelly Mullen", role: "Customer Success Team Member", email: "kelly@smartfits.co.uk", phone: "Not Available - Call General Support at 01283 533330", img: "./images/kelly_mullen.png" },
@@ -730,6 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
     closeAllModals();
   }
 });
+
 
 
 
